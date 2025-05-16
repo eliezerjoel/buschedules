@@ -1,0 +1,4 @@
+[
+    { "courseCode": "CS101", "courseName": "Introduction to Computer Science", "credits": 3 },
+{ "courseCode": "MA201", "courseName": "Calculus I", "credits": 4 }
+]
