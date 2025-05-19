@@ -1,16 +1,23 @@
 package dev.eliezerjoelk.buschedules.controller;
 
-import dev.eliezerjoelk.buschedules.model.TimeSlot;
-import dev.eliezerjoelk.buschedules.service.TimeSlotService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import dev.eliezerjoelk.buschedules.model.TimeSlot;
+import dev.eliezerjoelk.buschedules.service.TimeSlotService;
 
 @RestController
 @RequestMapping("/api/timeslots")
@@ -32,9 +39,9 @@ public class TimeSlotController {
      */
     @GetMapping("/available")
     public ResponseEntity<List<TimeSlot>> getAvailableTimeSlots(
-            @RequestParam Long courseId,
-            @RequestParam Long lecturerId) {
-        return ResponseEntity.ok(timeSlotService.getAvailableTimeSlots(courseId, lecturerId));
+            @RequestParam String courseId,
+            @RequestParam String instructorId) {
+        return ResponseEntity.ok(timeSlotService.getAvailableTimeSlots(courseId, instructorId));
     }
 
     /**
@@ -61,14 +68,14 @@ public class TimeSlotController {
      */
     @GetMapping("/check-availability")
     public ResponseEntity<Map<String, Boolean>> checkTimeSlotAvailability(
-            @RequestParam Long courseId,
-            @RequestParam Long lecturerId,
+            @RequestParam String courseId,
+            @RequestParam String instructorId,
             @RequestParam DayOfWeek dayOfWeek,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime startTime,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime endTime) {
         
         boolean isAvailable = timeSlotService.isTimeSlotAvailable(
-            courseId, lecturerId, dayOfWeek, startTime, endTime);
+            courseId, instructorId, dayOfWeek, startTime, endTime);
         
         return ResponseEntity.ok(Map.of("available", isAvailable));
     }
@@ -76,10 +83,10 @@ public class TimeSlotController {
     /**
      * Get all time slots for a lecturer
      */
-    @GetMapping("/lecturer/{lecturerId}")
+    @GetMapping("/lecturer/{instructorId}")
     public ResponseEntity<List<TimeSlot>> getTimeSlotsForLecturer(
-            @PathVariable Long lecturerId) {
-        return ResponseEntity.ok(timeSlotService.getTimeSlotsForLecturer(lecturerId));
+            @PathVariable String instructorId) {
+        return ResponseEntity.ok(timeSlotService.getTimeSlotsForLecturer(instructorId));
     }
 
     /**
@@ -87,7 +94,7 @@ public class TimeSlotController {
      */
     @GetMapping("/course/{courseId}")
     public ResponseEntity<List<TimeSlot>> getTimeSlotsForCourse(
-            @PathVariable Long courseId) {
+            @PathVariable String courseId) {
         return ResponseEntity.ok(timeSlotService.getTimeSlotsForCourse(courseId));
     }
 

@@ -1,5 +1,7 @@
 package dev.eliezerjoelk.buschedules.controller;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,10 +19,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+// Assuming these models are correctly defined in your project
+
 import dev.eliezerjoelk.buschedules.model.ScheduleAssignmentRequest;
 import dev.eliezerjoelk.buschedules.model.ScheduledClass;
-import dev.eliezerjoelk.buschedules.model.TimeSlot;
+import dev.eliezerjoelk.buschedules.model.TimeSlot; // Assuming TimeSlot is a valid model
 import dev.eliezerjoelk.buschedules.service.ScheduledClassService;
+// Import the custom exception for handling conflicts
+import dev.eliezerjoelk.buschedules.exception.SchedulingConflictException;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -44,9 +50,17 @@ public class ScheduledClassController {
     }
 
     @PostMapping
-    public ResponseEntity<ScheduledClass> createScheduledClass(@RequestBody ScheduledClass scheduledClass) {
-        ScheduledClass createdClass = scheduledClassService.createScheduledClass(scheduledClass);
-        return new ResponseEntity<>(createdClass, HttpStatus.CREATED);
+    public ResponseEntity<?> createScheduledClass(@RequestBody ScheduledClass scheduledClass) {
+        try {
+            ScheduledClass createdClass = scheduledClassService.createScheduledClass(scheduledClass);
+            return new ResponseEntity<>(createdClass, HttpStatus.CREATED);
+        } catch (SchedulingConflictException e) {
+            // Handle the specific conflict exception
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        } catch (Exception e) {
+            // Handle any other unexpected errors
+            return new ResponseEntity<>("Error creating schedule: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/bulk")
@@ -54,9 +68,13 @@ public class ScheduledClassController {
         try {
             List<ScheduledClass> createdClasses = new java.util.ArrayList<>();
             for (ScheduledClass scheduledClass : scheduledClasses) {
+                // Each creation can throw a conflict exception
                 createdClasses.add(scheduledClassService.createScheduledClass(scheduledClass));
             }
             return new ResponseEntity<>(createdClasses, HttpStatus.CREATED);
+        } catch (SchedulingConflictException e) {
+            // If any single scheduled class causes a conflict, return 409 for the whole bulk operation
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         } catch (Exception e) {
             return new ResponseEntity<>("Error creating multiple schedules: " + e.getMessage(),
                     HttpStatus.INTERNAL_SERVER_ERROR);
@@ -64,11 +82,19 @@ public class ScheduledClassController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ScheduledClass> updateScheduledClass(@PathVariable String id,
+    public ResponseEntity<?> updateScheduledClass(@PathVariable String id,
             @RequestBody ScheduledClass updatedClass) {
-        Optional<ScheduledClass> updated = scheduledClassService.updateScheduledClass(id, updatedClass);
-        return updated.map(sc -> new ResponseEntity<>(sc, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        try {
+            Optional<ScheduledClass> updated = scheduledClassService.updateScheduledClass(id, updatedClass);
+            return updated.map(sc -> new ResponseEntity<>(sc, HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        } catch (SchedulingConflictException e) {
+            // Handle the specific conflict exception for updates
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        } catch (Exception e) {
+            // Handle any other unexpected errors
+            return new ResponseEntity<>("Error updating schedule: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -78,34 +104,50 @@ public class ScheduledClassController {
     }
 
     // Get available time slots for course-instructor combination
-@GetMapping("/timeslots/available")
-public ResponseEntity<List<TimeSlot>> getAvailableTimeSlots(
-        @RequestParam String courseId, 
-        @RequestParam String instructorId) {
-    return ResponseEntity.ok(scheduledClassService.getAvailableTimeSlots(courseId, instructorId));
-}
+    @GetMapping("/timeslots/available")
+    public ResponseEntity<List<TimeSlot>> getAvailableTimeSlots(
+            @RequestParam String courseId,
+            @RequestParam String instructorId) {
+        // This method assumes scheduledClassService has getAvailableTimeSlots defined
+        return ResponseEntity.ok(scheduledClassService.getAvailableTimeSlots(courseId, instructorId));
+    }
 
-@PostMapping("/check-conflict")
-    public ResponseEntity<Boolean> checkScheduleConflict(@RequestBody ConflictCheckDTO checkRequest) {
-        boolean hasConflict = scheduleService.hasScheduleConflict(
-            checkRequest.getLecturerId(),
-            checkRequest.getDay(),
-            checkRequest.getStartTime(),
-            checkRequest.getEndTime()
+    @PostMapping("/check-conflict") // Changed to use @RequestParam
+    public ResponseEntity<Boolean> checkScheduleConflict(
+            @RequestParam String lecturerId,
+            @RequestParam DayOfWeek day,
+            @RequestParam LocalTime startTime,
+            @RequestParam LocalTime endTime) {
+        boolean hasConflict = scheduledClassService.hasScheduleConflict(
+                lecturerId,
+                day,
+                startTime,
+                endTime
         );
         return new ResponseEntity<>(hasConflict, HttpStatus.OK);
     }
-// Save assignment
-@PostMapping("/assign")
-public ResponseEntity<ScheduledClass> assignCourse(
-        @RequestBody ScheduleAssignmentRequest request) {
-    ScheduledClass scheduledClass = scheduledClassService.createScheduledClass(
-        request.getCourseId(), 
-        request.getInstructorId(),
-        request.getDayOfWeek(),
-        request.getStartTime(),
-        request.getEndTime()
-    );
-    return ResponseEntity.ok(scheduledClass);
-}
+
+    // Save assignment
+    @PostMapping("/assign")
+    public ResponseEntity<?> assignCourse( // Changed return type to wildcard for error handling
+            @RequestBody ScheduleAssignmentRequest request) {
+        try {
+            // Ensure createScheduledClass can handle these parameters or map them to a ScheduledClass object
+            ScheduledClass scheduledClass = scheduledClassService.createScheduledClass(
+                    request.getCourseId(),
+                    request.getInstructorId(),
+                    request.getStudentGroupId(), // Assuming ScheduleAssignmentRequest has studentGroupId
+                    request.getDayOfWeek(),
+                    request.getStartTime(),
+                    request.getEndTime(),
+                    request.getSemester(), // Assuming ScheduleAssignmentRequest has semester
+                    request.getAcademicYear() // Assuming ScheduleAssignmentRequest has academicYear
+            );
+            return ResponseEntity.ok(scheduledClass);
+        } catch (SchedulingConflictException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error assigning course: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

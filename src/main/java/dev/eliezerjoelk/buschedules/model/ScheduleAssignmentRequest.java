@@ -10,6 +10,8 @@ public class ScheduleAssignmentRequest {
     private DayOfWeek dayOfWeek;
     private LocalTime startTime;
     private LocalTime endTime;
+    private String semester;
+    private String academicYear;
     
     // Constructors
     public ScheduleAssignmentRequest() {
@@ -71,6 +73,22 @@ public class ScheduleAssignmentRequest {
     
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
+    }
+
+    public String getSemester() {
+        return semester;
+    }
+
+    public void setSemester(String semeter) {
+        this.semester = semeter;
+    }
+
+    public String getAcademicYear() {
+        return academicYear;
+    }
+
+    public void setAcademicYear(String academicYear) {
+        this.academicYear = academicYear;
     }
 
 }
