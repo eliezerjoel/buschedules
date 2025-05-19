@@ -58,6 +58,17 @@ public class InstructorController {
         instructorService.deleteInstructor(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @GetMapping("/{id}/workload")
+    public ResponseEntity<Integer> getInstructorWorkload(@PathVariable String id) {
+        try {
+            // Calculate total teaching hours per week
+            int totalHours = instructorService.calculateWeeklyWorkload(id);
+            return new ResponseEntity<>(totalHours, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
     
     // Get available instructors for a course
     // @GetMapping("/available")

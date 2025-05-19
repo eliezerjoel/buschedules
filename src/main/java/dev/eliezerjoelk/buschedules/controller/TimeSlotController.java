@@ -1,7 +1,7 @@
-package com.timetable.controllers;
+package dev.eliezerjoelk.buschedules.controller;
 
-import com.timetable.models.TimeSlot;
-import com.timetable.services.TimeSlotService;
+import dev.eliezerjoelk.buschedules.model.TimeSlot;
+import dev.eliezerjoelk.buschedules.service.TimeSlotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;

@@ -85,6 +85,16 @@ public ResponseEntity<List<TimeSlot>> getAvailableTimeSlots(
     return ResponseEntity.ok(scheduledClassService.getAvailableTimeSlots(courseId, instructorId));
 }
 
+@PostMapping("/check-conflict")
+    public ResponseEntity<Boolean> checkScheduleConflict(@RequestBody ConflictCheckDTO checkRequest) {
+        boolean hasConflict = scheduleService.hasScheduleConflict(
+            checkRequest.getLecturerId(),
+            checkRequest.getDay(),
+            checkRequest.getStartTime(),
+            checkRequest.getEndTime()
+        );
+        return new ResponseEntity<>(hasConflict, HttpStatus.OK);
+    }
 // Save assignment
 @PostMapping("/assign")
 public ResponseEntity<ScheduledClass> assignCourse(

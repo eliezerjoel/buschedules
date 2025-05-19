@@ -1,16 +1,17 @@
-package com.timetable.services;
-
-import com.timetable.models.Assignment;
-import com.timetable.models.TimeSlot;
-import com.timetable.repositories.AssignmentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+package dev.eliezerjoelk.buschedules.service;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import dev.eliezerjoelk.buschedules.model.Assignment;
+import dev.eliezerjoelk.buschedules.model.TimeSlot;
+import dev.eliezerjoelk.buschedules.repository.AssignmentRepository;
 
 @Service
 public class TimeSlotService {
@@ -51,9 +52,9 @@ public class TimeSlotService {
     /**
      * Get available time slots for a specific course and lecturer
      */
-    public List<TimeSlot> getAvailableTimeSlots(Long courseId, Long lecturerId) {
+    public List<TimeSlot> getAvailableTimeSlots(String courseId, String lecturerId) {
         // Get existing assignments for this lecturer
-        List<Assignment> lecturerAssignments = assignmentRepository.findByLecturerId(lecturerId);
+        List<Assignment> lecturerAssignments = assignmentRepository.findByInstructorId(lecturerId);
         
         // Get existing assignments for this course
         List<Assignment> courseAssignments = assignmentRepository.findByCourseId(courseId);
@@ -88,10 +89,10 @@ public class TimeSlotService {
     /**
      * Check if a specific time slot is available
      */
-    public boolean isTimeSlotAvailable(Long courseId, Long lecturerId, DayOfWeek dayOfWeek, 
+    public boolean isTimeSlotAvailable(String courseId, String lecturerId, DayOfWeek dayOfWeek, 
                                        LocalTime startTime, LocalTime endTime) {
         // Get existing assignments for this lecturer
-        List<Assignment> lecturerAssignments = assignmentRepository.findByLecturerId(lecturerId);
+        List<Assignment> lecturerAssignments = assignmentRepository.findByInstructorId(lecturerId);
         
         // Get existing assignments for this course
         List<Assignment> courseAssignments = assignmentRepository.findByCourseId(courseId);
@@ -106,15 +107,15 @@ public class TimeSlotService {
     /**
      * Get all time slots for a lecturer (occupied slots)
      */
-    public List<TimeSlot> getTimeSlotsForLecturer(Long lecturerId) {
-        List<Assignment> assignments = assignmentRepository.findByLecturerId(lecturerId);
+    public List<TimeSlot> getTimeSlotsForLecturer(String lecturerId) {
+        List<Assignment> assignments = assignmentRepository.findByInstructorId(lecturerId);
         return assignmentsToTimeSlots(assignments);
     }
     
     /**
      * Get all time slots for a course (occupied slots)
      */
-    public List<TimeSlot> getTimeSlotsForCourse(Long courseId) {
+    public List<TimeSlot> getTimeSlotsForCourse(String courseId) {
         List<Assignment> assignments = assignmentRepository.findByCourseId(courseId);
         return assignmentsToTimeSlots(assignments);
     }
