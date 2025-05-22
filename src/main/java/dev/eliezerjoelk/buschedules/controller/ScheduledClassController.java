@@ -2,7 +2,9 @@ package dev.eliezerjoelk.buschedules.controller;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +21,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-// Assuming these models are correctly defined in your project
-
-import dev.eliezerjoelk.buschedules.model.ScheduleAssignmentRequest;
-import dev.eliezerjoelk.buschedules.model.ScheduledClass;
-import dev.eliezerjoelk.buschedules.model.TimeSlot; // Assuming TimeSlot is a valid model
-import dev.eliezerjoelk.buschedules.service.ScheduledClassService;
-// Import the custom exception for handling conflicts
+import dev.eliezerjoelk.buschedules.dto.ConflictCheckRequest;
 import dev.eliezerjoelk.buschedules.exception.SchedulingConflictException;
+import dev.eliezerjoelk.buschedules.model.ScheduleAssignmentRequest;
+import dev.eliezerjoelk.buschedules.model.ScheduledClass; // Assuming TimeSlot is a valid model
+import dev.eliezerjoelk.buschedules.model.TimeSlot;
+import dev.eliezerjoelk.buschedules.service.ScheduledClassService;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -111,22 +111,31 @@ public class ScheduledClassController {
         // This method assumes scheduledClassService has getAvailableTimeSlots defined
         return ResponseEntity.ok(scheduledClassService.getAvailableTimeSlots(courseId, instructorId));
     }
+@PostMapping("/check-conflict")
+public ResponseEntity<?> checkScheduleConflict(@RequestBody ConflictCheckRequest request) {
+    try {
+        DayOfWeek parsedDayOfWeek = DayOfWeek.valueOf(request.getDayOfWeek().toUpperCase());
+        LocalTime parsedStartTime = LocalTime.parse(request.getStartTime());
+        LocalTime parsedEndTime = LocalTime.parse(request.getEndTime());
 
-    @PostMapping("/check-conflict") // Changed to use @RequestParam
-    public ResponseEntity<Boolean> checkScheduleConflict(
-            @RequestParam String lecturerId,
-            @RequestParam DayOfWeek day,
-            @RequestParam LocalTime startTime,
-            @RequestParam LocalTime endTime) {
         boolean hasConflict = scheduledClassService.hasScheduleConflict(
-                lecturerId,
-                day,
-                startTime,
-                endTime
+                request.getLecturerId(),
+                parsedDayOfWeek,
+                parsedStartTime,
+                parsedEndTime
         );
-        return new ResponseEntity<>(hasConflict, HttpStatus.OK);
+        
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("hasConflict", hasConflict);
+        
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    } catch (Exception e) {
+        return new ResponseEntity<>(
+            Map.of("error", "Invalid input: " + e.getMessage()),
+            HttpStatus.BAD_REQUEST
+        );
     }
-
+}
     // Save assignment
     @PostMapping("/assign")
     public ResponseEntity<?> assignCourse( // Changed return type to wildcard for error handling
@@ -151,3 +160,23 @@ public class ScheduledClassController {
         }
     }
 }
+
+
+
+
+
+
+    // @PostMapping("/check-conflict") // Changed to use @RequestParam
+    // public ResponseEntity<Boolean> checkScheduleConflict(
+    //         @RequestParam String lecturerId,
+    //         @RequestParam DayOfWeek dayOfWeek,
+    //         @RequestParam LocalTime startTime,
+    //         @RequestParam LocalTime endTime) {
+    //     boolean hasConflict = scheduledClassService.hasScheduleConflict(
+    //             lecturerId,
+    //             dayOfWeek,
+    //             startTime,
+    //             endTime
+    //     );
+    //     return new ResponseEntity<>(hasConflict, HttpStatus.OK);
+    // }
