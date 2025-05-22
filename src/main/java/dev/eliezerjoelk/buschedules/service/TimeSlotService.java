@@ -9,9 +9,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import dev.eliezerjoelk.buschedules.model.Assignment;
+import dev.eliezerjoelk.buschedules.model.ScheduledClass;
 import dev.eliezerjoelk.buschedules.model.TimeSlot;
-import dev.eliezerjoelk.buschedules.repository.AssignmentRepository;
+import dev.eliezerjoelk.buschedules.repository.ScheduledClassRepository;
 
 @Service
 public class TimeSlotService {
@@ -22,7 +22,7 @@ public class TimeSlotService {
     private int slotDurationMinutes = 60; // 1-hour slots
     
     @Autowired
-    private AssignmentRepository assignmentRepository;
+    private ScheduledClassRepository scheduledClassRepository;
     
     /**
      * Generate all possible time slots based on current configuration
@@ -54,10 +54,10 @@ public class TimeSlotService {
      */
     public List<TimeSlot> getAvailableTimeSlots(String courseId, String lecturerId) {
         // Get existing assignments for this lecturer
-        List<Assignment> lecturerAssignments = assignmentRepository.findByInstructorId(lecturerId);
+        List<ScheduledClass> lecturerAssignments = scheduledClassRepository.findByInstructorId(lecturerId);
         
         // Get existing assignments for this course
-        List<Assignment> courseAssignments = assignmentRepository.findByCourseId(courseId);
+        List<ScheduledClass> courseAssignments = scheduledClassRepository.findByCourseId(courseId);
         
         // Generate all possible time slots
         List<TimeSlot> allTimeSlots = getAllTimeSlots();
@@ -92,10 +92,10 @@ public class TimeSlotService {
     public boolean isTimeSlotAvailable(String courseId, String lecturerId, DayOfWeek dayOfWeek, 
                                        LocalTime startTime, LocalTime endTime) {
         // Get existing assignments for this lecturer
-        List<Assignment> lecturerAssignments = assignmentRepository.findByInstructorId(lecturerId);
+        List<ScheduledClass> lecturerAssignments = scheduledClassRepository.findByInstructorId(lecturerId);
         
         // Get existing assignments for this course
-        List<Assignment> courseAssignments = assignmentRepository.findByCourseId(courseId);
+        List<ScheduledClass> courseAssignments = scheduledClassRepository.findByCourseId(courseId);
         
         // Create a time slot to check
         TimeSlot slotToCheck = new TimeSlot(dayOfWeek, startTime, endTime);
@@ -108,7 +108,7 @@ public class TimeSlotService {
      * Get all time slots for a lecturer (occupied slots)
      */
     public List<TimeSlot> getTimeSlotsForLecturer(String lecturerId) {
-        List<Assignment> assignments = assignmentRepository.findByInstructorId(lecturerId);
+        List<ScheduledClass> assignments = scheduledClassRepository.findByInstructorId(lecturerId);
         return assignmentsToTimeSlots(assignments);
     }
     
@@ -116,7 +116,7 @@ public class TimeSlotService {
      * Get all time slots for a course (occupied slots)
      */
     public List<TimeSlot> getTimeSlotsForCourse(String courseId) {
-        List<Assignment> assignments = assignmentRepository.findByCourseId(courseId);
+        List<ScheduledClass> assignments = scheduledClassRepository.findByCourseId(courseId);
         return assignmentsToTimeSlots(assignments);
     }
     
@@ -132,7 +132,7 @@ public class TimeSlotService {
     /**
      * Convert assignments to time slots
      */
-    private List<TimeSlot> assignmentsToTimeSlots(List<Assignment> assignments) {
+    private List<TimeSlot> assignmentsToTimeSlots(List<ScheduledClass> assignments) {
         return assignments.stream()
             .map(assignment -> new TimeSlot(
                 assignment.getDayOfWeek(),
@@ -146,8 +146,8 @@ public class TimeSlotService {
      * Check if a time slot conflicts with existing assignments
      */
     private boolean conflictsWithExistingAssignments(TimeSlot slot, 
-                                                    List<Assignment> lecturerAssignments, 
-                                                    List<Assignment> courseAssignments) {
+                                                    List<ScheduledClass> lecturerAssignments, 
+                                                    List<ScheduledClass> courseAssignments) {
         // Check if the time slot conflicts with any lecturer assignments
         boolean lecturerConflict = lecturerAssignments.stream().anyMatch(assignment -> 
             assignment.getDayOfWeek() == slot.getDayOfWeek() &&

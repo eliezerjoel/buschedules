@@ -5,6 +5,7 @@ import java.time.DayOfWeek;
 import java.util.List;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository; // Make sure to import StudentGroup
 
 import dev.eliezerjoelk.buschedules.model.Instructor;
@@ -26,10 +27,13 @@ public interface ScheduledClassRepository extends MongoRepository<ScheduledClass
     // If you need to find by StudentGroup only, add this:
     List<ScheduledClass> findByStudentGroup(StudentGroup studentGroup);
 
+    @Query("{'course.$id': ObjectId(?0)}")
     List<ScheduledClass> findByCourseId(String courseId);
 
+    @Query("{'instructor.$id': ObjectId(?0)}")
     List<ScheduledClass> findByInstructorId(String instructorId);
 
+    @Query("{'studentGroup.$id': ObjectId(?0)}")
     List<ScheduledClass> findByStudentGroupId(String studentGroupId);
 
 

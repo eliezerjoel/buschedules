@@ -8,9 +8,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import dev.eliezerjoelk.buschedules.model.Assignment;
 import dev.eliezerjoelk.buschedules.model.Instructor;
-import dev.eliezerjoelk.buschedules.repository.AssignmentRepository;
+import dev.eliezerjoelk.buschedules.model.ScheduledClass;
+import dev.eliezerjoelk.buschedules.repository.ScheduledClassRepository;
 import dev.eliezerjoelk.buschedules.repository.InstructorRepository;
 
 @Service
@@ -18,7 +18,7 @@ public class InstructorService {
 
     @Autowired
     private InstructorRepository instructorRepository;
-    private AssignmentRepository assignmentRepository;
+    private ScheduledClassRepository scheduledClassRepository;
 
     public List<Instructor> getAllInstructors() {
         return instructorRepository.findAll();
@@ -52,10 +52,10 @@ public class InstructorService {
     }
     public int calculateWeeklyWorkload(String instructorId) {
     // Get all assignments for this instructor
-    List<Assignment> assignments = assignmentRepository.findByInstructorId(instructorId);
-    System.out.println("Assignments: " + assignments);
+    List<ScheduledClass> scheduledClass = scheduledClassRepository.findByInstructorId(instructorId);
+    System.out.println("scheduledClasses: " + scheduledClass);
     // Calculate total hours per week
-    return assignments.stream()
+    return scheduledClass.stream()
         .mapToInt(assignment -> {
             // Calculate duration in hours for each assignment
             LocalTime start = (assignment.getStartTime());

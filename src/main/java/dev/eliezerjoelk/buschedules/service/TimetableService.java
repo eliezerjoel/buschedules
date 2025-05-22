@@ -11,13 +11,13 @@ import org.springframework.stereotype.Service;
 
 import dev.eliezerjoelk.buschedules.exception.ConflictException;
 import dev.eliezerjoelk.buschedules.exception.ResourceNotFoundException;
-import dev.eliezerjoelk.buschedules.model.Assignment;
 import dev.eliezerjoelk.buschedules.model.Course;
 import dev.eliezerjoelk.buschedules.model.Instructor;
+import dev.eliezerjoelk.buschedules.model.ScheduledClass;
 import dev.eliezerjoelk.buschedules.model.TimeSlot;
-import dev.eliezerjoelk.buschedules.repository.AssignmentRepository;
 import dev.eliezerjoelk.buschedules.repository.CourseRepository;
 import dev.eliezerjoelk.buschedules.repository.InstructorRepository;
+import dev.eliezerjoelk.buschedules.repository.ScheduledClassRepository;
 
 @Service
 public class TimetableService {
@@ -29,14 +29,14 @@ public class TimetableService {
     private InstructorRepository instructorRepository;
     
     @Autowired
-    private AssignmentRepository assignmentRepository;
+    private ScheduledClassRepository scheduledClassRepository;
     
     public List<TimeSlot> getAvailableTimeSlots(String courseId, String instructorId) {
         // Get existing assignments for this instructor
-        List<Assignment> instructorAssignments = assignmentRepository.findByInstructorId(instructorId);
-        
+        List<ScheduledClass> instructorAssignments = scheduledClassRepository.findByInstructorId(instructorId);
+
         // Get existing assignments for this course
-        List<Assignment> courseAssignments = assignmentRepository.findByCourseId(courseId);
+        List<ScheduledClass> courseAssignments = scheduledClassRepository.findByCourseId(courseId);
         
         // Generate all possible time slots (e.g., Monday-Friday, 8AM-6PM, in 1-hour blocks)
         List<TimeSlot> allTimeSlots = generateAllTimeSlots();
@@ -49,7 +49,7 @@ public class TimetableService {
         return availableTimeSlots;
     }
     
-    public Assignment createAssignment(String courseId, String instructorId, 
+    public ScheduledClass createAssignment(String courseId, String instructorId, 
                                        DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
         Course course = courseRepository.findById(courseId)
             .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
@@ -64,14 +64,14 @@ public class TimetableService {
         }
         
         // Create and save the new assignment
-        Assignment assignment = new Assignment();
-        assignment.setCourse(course);
-        assignment.setInstructor(instructor);
-        assignment.setDayOfWeek(dayOfWeek);
-        assignment.setStartTime(startTime);
-        assignment.setEndTime(endTime);
+        ScheduledClass scheduledClass = new ScheduledClass();
+        scheduledClass.setCourse(course);
+        scheduledClass.setInstructor(instructor);
+        scheduledClass.setDayOfWeek(dayOfWeek);
+        scheduledClass.setStartTime(startTime);
+        scheduledClass.setEndTime(endTime);
         
-        return assignmentRepository.save(assignment);
+        return scheduledClassRepository.save(scheduledClass);
     }
     
     private List<TimeSlot> generateAllTimeSlots() {
@@ -110,15 +110,15 @@ public class TimetableService {
     }
     
     private List<TimeSlot> removeConflictingTimeSlots(List<TimeSlot> allTimeSlots, 
-                                                      List<Assignment> instructorAssignments,
-                                                      List<Assignment> courseAssignments) {
+                                                      List<ScheduledClass> instructorAssignments,
+                                                      List<ScheduledClass> courseAssignments) {
         return allTimeSlots.stream()
                 .filter(timeSlot -> !conflictsWithAnyAssignment(timeSlot, instructorAssignments))
                 .filter(timeSlot -> !conflictsWithAnyAssignment(timeSlot, courseAssignments))
                 .collect(Collectors.toList());
     }
     
-    private boolean conflictsWithAnyAssignment(TimeSlot timeSlot, List<Assignment> assignments) {
+    private boolean conflictsWithAnyAssignment(TimeSlot timeSlot, List<ScheduledClass> assignments) {
         return assignments.stream().anyMatch(assignment -> 
             assignment.getDayOfWeek() == timeSlot.getDayOfWeek() && 
             // Check if the time ranges overlap
@@ -151,10 +151,10 @@ public class TimetableService {
         requestedSlot.setEndTime(endTime);
         
         // Get existing assignments for this instructor
-        List<Assignment> instructorAssignments = assignmentRepository.findByInstructorId(instructorId);
+        List<ScheduledClass> instructorAssignments = scheduledClassRepository.findByInstructorId(instructorId);
         
         // Get existing assignments for this course
-        List<Assignment> courseAssignments = assignmentRepository.findByCourseId(courseId);
+        List<ScheduledClass> courseAssignments = scheduledClassRepository.findByCourseId(courseId);
         
         // Check if the requested time slot conflicts with any existing assignment
         boolean instructorHasConflict = conflictsWithAnyAssignment(requestedSlot, instructorAssignments);
