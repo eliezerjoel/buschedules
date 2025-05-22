@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.eliezerjoelk.buschedules.dto.ConflictCheckRequest;
 import dev.eliezerjoelk.buschedules.exception.SchedulingConflictException;
 import dev.eliezerjoelk.buschedules.model.ScheduleAssignmentRequest;
-import dev.eliezerjoelk.buschedules.model.ScheduledClass; // Assuming TimeSlot is a valid model
+import dev.eliezerjoelk.buschedules.model.ScheduledClass;
 import dev.eliezerjoelk.buschedules.model.TimeSlot;
 import dev.eliezerjoelk.buschedules.service.ScheduledClassService;
 

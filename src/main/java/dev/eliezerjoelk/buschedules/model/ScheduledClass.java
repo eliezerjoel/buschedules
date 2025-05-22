@@ -18,13 +18,12 @@ public class ScheduledClass {
     private Instructor instructor;
     @DBRef
     private StudentGroup studentGroup;
-    private DayOfWeek dayOfWeek; // e.g., "Monday", "Tuesday", etc.
-    private LocalTime startTime; // e.g., "09:00", "14:30" (24-hour format)
-    private LocalTime endTime;   // e.g., "10:30", "15:45" (24-hour format)
-    private String semester; // e.g., "Fall 2025", "Spring 2026"
-    private String academicYear; // e.g., "2025-2026"
+    private DayOfWeek dayOfWeek; 
+    private LocalTime startTime; 
+    private LocalTime endTime;   
+    private String semester; 
+    private String academicYear; 
 
-    // Constructors (default, all-args)
     public ScheduledClass() {
     }
 

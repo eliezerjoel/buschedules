@@ -26,6 +26,17 @@ public interface ScheduledClassRepository extends MongoRepository<ScheduledClass
     // If you need to find by StudentGroup only, add this:
     List<ScheduledClass> findByStudentGroup(StudentGroup studentGroup);
 
+    List<ScheduledClass> findByCourseId(String courseId);
+
+    List<ScheduledClass> findByInstructorId(String instructorId);
+
+    List<ScheduledClass> findByStudentGroupId(String studentGroupId);
+
+
+
+
+
+
     // Method to find all scheduled classes
     // List<ScheduledClass> findAll();
 }
