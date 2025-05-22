@@ -27,56 +27,9 @@ import dev.eliezerjoelk.buschedules.service.AssignmentService;
 @RequestMapping("/api/assignments")
 public class AssignmentController {
 
-    @Autowired
-    private AssignmentService assignmentService;
+  
     
-    /**
-     * Get all assignments
-     */
-    @GetMapping
-    public ResponseEntity<List<Assignment>> getAllAssignments() {
-        List<Assignment> assignments = assignmentService.getAllAssignments();
-        return new ResponseEntity<>(assignments, HttpStatus.OK);
-    }
-    
-    /**
-     * Get assignment by ID
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<Assignment> getAssignmentById(@PathVariable String id) {
-        Optional<Assignment> assignment = assignmentService.getAssignmentById(id);
-        return assignment.map(a -> new ResponseEntity<>(a, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-    
-    /**
-     * Create a new assignment
-     */
-    @PostMapping
-    public ResponseEntity<Assignment> createAssignment(@RequestBody Assignment assignment) {
-        Assignment createdAssignment = assignmentService.createAssignment(assignment);
-        return new ResponseEntity<>(createdAssignment, HttpStatus.CREATED);
-    }
-    
-    /**
-     * Update an existing assignment
-     */
-    @PutMapping("/{id}")
-    public ResponseEntity<Assignment> updateAssignment(@PathVariable String id, @RequestBody Assignment assignment) {
-        Optional<Assignment> updatedAssignment = assignmentService.updateAssignment(id, assignment);
-        return updatedAssignment.map(a -> new ResponseEntity<>(a, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-    
-    /**
-     * Delete an assignment
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAssignment(@PathVariable String id) {
-        assignmentService.deleteAssignment(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-    
+  
     /**
      * Get assignments by course ID
      */
@@ -104,35 +57,4 @@ public class AssignmentController {
         return new ResponseEntity<>(assignments, HttpStatus.OK);
     }
     
-    /**
-     * Get available time slots for a course-instructor combination
-     */
-    @GetMapping("/timeslots/available")
-    public ResponseEntity<List<TimeSlot>> getAvailableTimeSlots(
-            @RequestParam String courseId, 
-            @RequestParam String instructorId) {
-        List<TimeSlot> availableTimeSlots = assignmentService.getAvailableTimeSlots(courseId, instructorId);
-        return new ResponseEntity<>(availableTimeSlots, HttpStatus.OK);
-    }
-    
-    /**
-     * Create a new assignment using the schedule assignment request
-     */
-    @PostMapping("/assign")
-    public ResponseEntity<Assignment> assignCourse(@RequestBody ScheduleAssignmentRequest request) {
-        try {
-            Assignment assignment = assignmentService.createAssignment(
-                request.getCourseId(),
-                request.getInstructorId(),
-                request.getStudentGroupId(),
-                request.getDayOfWeek(),
-                request.getStartTime(),
-                request.getEndTime()
-            );
-            return new ResponseEntity<>(assignment, HttpStatus.CREATED);
-        } catch (Exception e) {
-            // In a real application, you might want to handle different exceptions differently
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
 }

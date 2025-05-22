@@ -138,6 +138,7 @@ public ResponseEntity<?> checkScheduleConflict(@RequestBody ConflictCheckRequest
 }
     // Save assignment
     @PostMapping("/assign")
+    // public ResponseEntity<ScheduledClass> assignCourse(
     public ResponseEntity<?> assignCourse( // Changed return type to wildcard for error handling
             @RequestBody ScheduleAssignmentRequest request) {
         try {
@@ -159,6 +160,28 @@ public ResponseEntity<?> checkScheduleConflict(@RequestBody ConflictCheckRequest
             return new ResponseEntity<>("Error assigning course: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("course/{courseId}")
+    public ResponseEntity<List<ScheduledClass>> findScheduledClassByCourse(@PathVariable String courseId) {
+        List<ScheduledClass> scheduledClasses = scheduledClassService.findScheduledClassByCourse(courseId);
+        return new ResponseEntity<>(scheduledClasses, HttpStatus.OK);
+    }
+
+    @GetMapping("instructor/{instructorId}")
+    public ResponseEntity<List<ScheduledClass>> findScheduledClassByInstructor(@PathVariable String instructorId) {
+        List<ScheduledClass> scheduledClasses = scheduledClassService.findScheduledClassByInstructor(instructorId);
+        return new ResponseEntity<>(scheduledClasses, HttpStatus.OK);
+    }
+
+    @GetMapping("student-group/{studentGroupId}")
+    public ResponseEntity<List<ScheduledClass>> findScheduledClassByStudentGroup(@PathVariable String studentGroupId){
+        List<ScheduledClass> scheduledClasses = scheduledClassService.findScheduledClassByStudentGroup(studentGroupId);
+        return new ResponseEntity<>(scheduledClasses, HttpStatus.OK);
+
+    }
+
+
+    
 }
 
 
