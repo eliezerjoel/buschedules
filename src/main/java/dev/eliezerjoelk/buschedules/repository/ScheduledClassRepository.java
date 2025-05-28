@@ -36,12 +36,4 @@ public interface ScheduledClassRepository extends MongoRepository<ScheduledClass
     @Query("{'studentGroup.$id': ObjectId(?0)}")
     List<ScheduledClass> findByStudentGroupId(String studentGroupId);
 
-
-
-
-
-
-    // Method to find all scheduled classes
-    // List<ScheduledClass> findAll();
 }
-
