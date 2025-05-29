@@ -50,7 +50,7 @@ public class TimetableService {
     }
     
     public ScheduledClass createAssignment(String courseId, String instructorId, 
-                                       DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+                                       TimeSlot timeSlot) {
         Course course = courseRepository.findById(courseId)
             .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
         
@@ -58,7 +58,7 @@ public class TimetableService {
             .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
         
         // Check if the time slot is still available
-        boolean isAvailable = checkTimeSlotAvailability(courseId, instructorId, dayOfWeek, startTime, endTime);
+        boolean isAvailable = checkTimeSlotAvailability(courseId, instructorId, timeSlot);
         if (!isAvailable) {
             throw new ConflictException("The selected time slot is no longer available");
         }
@@ -67,9 +67,18 @@ public class TimetableService {
         ScheduledClass scheduledClass = new ScheduledClass();
         scheduledClass.setCourse(course);
         scheduledClass.setInstructor(instructor);
-        scheduledClass.setDayOfWeek(dayOfWeek);
-        scheduledClass.setStartTime(startTime);
-        scheduledClass.setEndTime(endTime);
+        scheduledClass.settimeSlot(timeSlot);
+
+
+
+        
+        // Create and save the new assignment
+        // ScheduledClass scheduledClass = new ScheduledClass();
+        // scheduledClass.setCourse(course);
+        // scheduledClass.setInstructor(instructor);
+        // scheduledClass.setDayOfWeek(dayOfWeek);
+        // scheduledClass.setStartTime(startTime);
+        // scheduledClass.setEndTime(endTime);
         
         return scheduledClassRepository.save(scheduledClass);
     }
@@ -143,13 +152,13 @@ public class TimetableService {
     }
     
     private boolean checkTimeSlotAvailability(String courseId, String instructorId, 
-                                             DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+                                             TimeSlot timeSlot) {
         // Create a timeSlot object from the parameters
-        TimeSlot requestedSlot = new TimeSlot();
-        requestedSlot.setDayOfWeek(dayOfWeek);
-        requestedSlot.setStartTime(startTime);
-        requestedSlot.setEndTime(endTime);
-        
+        // TimeSlot requestedSlot = new TimeSlot();
+        // requestedSlot.setDayOfWeek(timeSlot.getDayOfWeek());
+        // requestedSlot.setStartTime(timeSlot.getStartTime());
+        // requestedSlot.setEndTime(timeSlot.getEndTime());
+
         // Get existing assignments for this instructor
         List<ScheduledClass> instructorAssignments = scheduledClassRepository.findByInstructorId(instructorId);
         
@@ -157,8 +166,8 @@ public class TimetableService {
         List<ScheduledClass> courseAssignments = scheduledClassRepository.findByCourseId(courseId);
         
         // Check if the requested time slot conflicts with any existing assignment
-        boolean instructorHasConflict = conflictsWithAnyAssignment(requestedSlot, instructorAssignments);
-        boolean courseHasConflict = conflictsWithAnyAssignment(requestedSlot, courseAssignments);
+        boolean instructorHasConflict = conflictsWithAnyAssignment(timeSlot, instructorAssignments);
+        boolean courseHasConflict = conflictsWithAnyAssignment(timeSlot, courseAssignments);
         
         // The time slot is available if there are no conflicts
         return !instructorHasConflict && !courseHasConflict;
