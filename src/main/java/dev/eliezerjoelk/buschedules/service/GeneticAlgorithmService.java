@@ -1,19 +1,11 @@
 
 package dev.eliezerjoelk.buschedules.service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import dev.eliezerjoelk.buschedules.repository.CourseRepository;
-import java.time.Duration;
-import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,7 +18,7 @@ import dev.eliezerjoelk.buschedules.model.Instructor;
 import dev.eliezerjoelk.buschedules.model.ScheduledClass;
 import dev.eliezerjoelk.buschedules.model.TimeSlot;
 import dev.eliezerjoelk.buschedules.model.Timetable;
-import dev.eliezerjoelk.buschedules.repository.ScheduledClassRepository;
+import dev.eliezerjoelk.buschedules.repository.CourseRepository;
 import dev.eliezerjoelk.buschedules.repository.InstructorRepository;
 
 
@@ -134,7 +126,7 @@ public class GeneticAlgorithmService {
             .collect(Collectors.toList());
         
         if (possibleLecturers.isEmpty()) {
-            throw new IllegalStateException("No lecturer available for course: " + course.getCode());
+            throw new IllegalStateException("No lecturer available for course: " + course.getCourseCode());
         }
         
         return possibleLecturers.get(new Random().nextInt(possibleLecturers.size()));
@@ -198,7 +190,7 @@ public class GeneticAlgorithmService {
         for (ScheduledClass sc : timetable.getClasses()) {
             if (rand.nextDouble() < MUTATION_RATE) {
                 // Mutate time slot
-                sc.setTimeSlot(timeSlots.get(rand.nextInt(timeSlots.size())));
+                sc.settimeSlot(timeSlots.get(rand.nextInt(timeSlots.size())));
             }
         }
     }
