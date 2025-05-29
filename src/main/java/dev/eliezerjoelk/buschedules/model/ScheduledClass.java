@@ -28,7 +28,11 @@ public class ScheduledClass {
     public ScheduledClass() {
     }
 
-    public ScheduledClass(Course course, Instructor instructor, StudentGroup studentGroup, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, String semester, String academicYear) {
+    public ScheduledClass(Course course, Instructor instructor, StudentGroup studentGroup,TimeSlot timeSlot, String semester, String academicYear) {
+
+
+    
+        // public ScheduledClass(Course course, Instructor instructor, StudentGroup studentGroup, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, String semester, String academicYear) {
         this.course = course;
         this.instructor = instructor;
         this.studentGroup = studentGroup;

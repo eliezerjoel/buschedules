@@ -32,6 +32,8 @@ import dev.eliezerjoelk.buschedules.repository.InstructorRepository;
 
 @Service
 public class GeneticAlgorithmService {
+
+    private final TimeSlotService timeSlotService;
     @Autowired
     private CourseRepository courseRepo;
     @Autowired
@@ -40,6 +42,10 @@ public class GeneticAlgorithmService {
     private static final int POPULATION_SIZE = 50;
     private static final double MUTATION_RATE = 0.1;
     private static final int MAX_GENERATIONS = 100;
+
+    GeneticAlgorithmService(TimeSlotService timeSlotService) {
+        this.timeSlotService = timeSlotService;
+    }
     public List<ScheduledClass> generateSchedule() {
         List<Course> courses = courseRepo.findAll();
         List<Instructor> lecturers = InstructorRepo.findAll();
@@ -53,14 +59,17 @@ public class GeneticAlgorithmService {
     }
 
     private List<TimeSlot> getAllTimeSlots() {
+        return timeSlotService.getAllTimeSlots(); 
+
+
         // Implement based on your time slot management
         // Example:
-        return Arrays.asList(
-            new TimeSlot("08:00-10:00"),
-            new TimeSlot("10:00-12:00"),
-            new TimeSlot("13:00-15:00"),
-            new TimeSlot("15:00-17:00")
-        );
+        // return Arrays.asList(
+        //     new TimeSlot("08:00-10:00"),
+        //     new TimeSlot("10:00-12:00"),
+        //     new TimeSlot("13:00-15:00"),
+        //     new TimeSlot("15:00-17:00")
+        // );
     }
 
     private List<ScheduledClass> mapToScheduledClasses(Timetable timetable) {
@@ -83,11 +92,11 @@ public class GeneticAlgorithmService {
 
     private int calculateFitness(Timetable timetable) {
         int conflicts = 0;
-        Map<Lecturer, Set<TimeSlot>> lecturerSchedule = new HashMap<>();
+        Map<Instructor, Set<TimeSlot>> lecturerSchedule = new HashMap<>();
         
         for (ScheduledClass sc : timetable.getClasses()) {
-            Instructor lecturer = sc.getLecturer();
-            TimeSlot slot = sc.getTimeSlot();
+            Instructor lecturer = sc.getInstructor();
+            TimeSlot slot = sc.gettimeSlot();
             
             // Lecturer double-booking check
             if (lecturerSchedule.computeIfAbsent(lecturer, k -> new HashSet<>()).contains(slot)) {
@@ -114,7 +123,7 @@ public class GeneticAlgorithmService {
         for (Course course : courses) {
             Instructor lecturer = getRandomLecturerForCourse(lecturers, course);
             TimeSlot slot = timeSlots.get(rand.nextInt(timeSlots.size()));
-            timetable.addClass(new ScheduledClass(course, lecturer, slot, null));
+            timetable.addClass(new ScheduledClass(course, lecturer, null, slot, null, null));
         }
         return timetable;
     }
