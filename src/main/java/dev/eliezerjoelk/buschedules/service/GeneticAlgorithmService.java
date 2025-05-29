@@ -83,7 +83,7 @@ public class GeneticAlgorithmService {
 
     private int calculateFitness(Timetable timetable) {
         int conflicts = 0;
-        Map<Lecturer, Set<TimeSlot>> lecturerSchedule = new HashMap<>();
+        Map<Instructor, Set<TimeSlot>> lecturerSchedule = new HashMap<>();
         
         for (ScheduledClass sc : timetable.getClasses()) {
             Instructor lecturer = sc.getLecturer();

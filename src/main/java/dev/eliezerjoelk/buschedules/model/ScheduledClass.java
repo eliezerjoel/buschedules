@@ -1,8 +1,5 @@
 package dev.eliezerjoelk.buschedules.model;
 
-import java.time.DayOfWeek;
-import java.time.LocalTime;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -28,7 +25,7 @@ public class ScheduledClass {
     public ScheduledClass() {
     }
 
-    public ScheduledClass(Course course, Instructor instructor, StudentGroup studentGroup, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, String semester, String academicYear) {
+    public ScheduledClass(Course course, Instructor instructor, TimeSlot timeSlot, StudentGroup studentGroup) {
         this.course = course;
         this.instructor = instructor;
         this.studentGroup = studentGroup;
