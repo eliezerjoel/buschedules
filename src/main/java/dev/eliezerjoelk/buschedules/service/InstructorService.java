@@ -1,7 +1,5 @@
 package dev.eliezerjoelk.buschedules.service;
 
-import java.time.Duration;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,9 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import dev.eliezerjoelk.buschedules.model.Instructor;
-import dev.eliezerjoelk.buschedules.model.ScheduledClass;
-import dev.eliezerjoelk.buschedules.repository.ScheduledClassRepository;
 import dev.eliezerjoelk.buschedules.repository.InstructorRepository;
+import dev.eliezerjoelk.buschedules.repository.ScheduledClassRepository;
 
 @Service
 public class InstructorService {
@@ -50,21 +47,21 @@ public class InstructorService {
     public List<Instructor> getAvailableInstructorsForCourse() {
         return instructorRepository.findAll();
     }
-    public int calculateWeeklyWorkload(String instructorId) {
-    // Get all assignments for this instructor
-    List<ScheduledClass> scheduledClass = scheduledClassRepository.findByInstructorId(instructorId);
-    System.out.println("scheduledClasses: " + scheduledClass);
-    // Calculate total hours per week
-    return scheduledClass.stream()
-        .mapToInt(assignment -> {
-            // Calculate duration in hours for each assignment
-            LocalTime start = (assignment.getStartTime());
-            LocalTime end = (assignment.getEndTime());
-            return (int) Duration.between(start, end).toHours();
-        })
-        .sum();
+//     public int calculateWeeklyWorkload(String instructorId) {
+//     // Get all assignments for this instructor
+//     List<ScheduledClass> scheduledClass = scheduledClassRepository.findByInstructorId(instructorId);
+//     System.out.println("scheduledClasses: " + scheduledClass);
+//     // Calculate total hours per week
+//     return scheduledClass.stream()
+//         .mapToInt(assignment -> {
+//             // Calculate duration in hours for each assignment
+//             LocalTime start = (assignment.getStartTime());
+//             LocalTime end = (assignment.getEndTime());
+//             return (int) Duration.between(start, end).toHours();
+//         })
+//         .sum();
         
-}
+// }
     
 }
 

@@ -20,7 +20,6 @@ import dev.eliezerjoelk.buschedules.model.Course;
 import dev.eliezerjoelk.buschedules.model.Instructor;
 import dev.eliezerjoelk.buschedules.service.CourseService;
 import dev.eliezerjoelk.buschedules.service.InstructorService;
-import dev.eliezerjoelk.buschedules.service.TimetableService;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -32,9 +31,6 @@ public class CourseController {
 
     @Autowired
     private InstructorService instructorService;
-
-    @Autowired
-    private TimetableService timetableService;
 
     @GetMapping
     public ResponseEntity<List<Course>> getAllCourses() {

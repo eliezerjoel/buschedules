@@ -18,9 +18,10 @@ public class ScheduledClass {
     private Instructor instructor;
     @DBRef
     private StudentGroup studentGroup;
-    private DayOfWeek dayOfWeek; 
-    private LocalTime startTime; 
-    private LocalTime endTime;   
+    private TimeSlot timeSlot;
+    // private DayOfWeek dayOfWeek; 
+    // private LocalTime startTime; 
+    // private LocalTime endTime;   
     private String semester; 
     private String academicYear; 
 
@@ -31,9 +32,10 @@ public class ScheduledClass {
         this.course = course;
         this.instructor = instructor;
         this.studentGroup = studentGroup;
-        this.dayOfWeek = dayOfWeek;
-        this.startTime = startTime;
-        this.endTime = endTime;
+        // this.dayOfWeek = dayOfWeek;
+        // this.startTime = startTime;
+        // this.endTime = endTime;
+        this.timeSlot = timeSlot;
         this.semester = semester;
         this.academicYear = academicYear;
     }
@@ -71,30 +73,39 @@ public class ScheduledClass {
         this.studentGroup = studentGroup;
     }
 
-    public DayOfWeek getDayOfWeek() {
-        return dayOfWeek;
+    // public DayOfWeek getDayOfWeek() {
+    //     return dayOfWeek;
+    // }
+
+    // public void setDayOfWeek(DayOfWeek dayOfWeek2) {
+    //     this.dayOfWeek = dayOfWeek2;
+    // }
+
+    // public LocalTime getStartTime() {
+    //     return startTime;
+    // }
+
+    // public void setStartTime(LocalTime startTime) {
+    //     this.startTime = startTime;
+    // }
+
+    // public LocalTime getEndTime() {
+    //     return endTime;
+    // }
+
+    // public void setEndTime(LocalTime endTime) {
+    //     this.endTime = endTime;
+    // }
+
+
+    
+    public TimeSlot gettimeSlot() {
+        return timeSlot;
     }
 
-    public void setDayOfWeek(DayOfWeek dayOfWeek2) {
-        this.dayOfWeek = dayOfWeek2;
+    public void settimeSlot(TimeSlot timeSlot) {
+        this.timeSlot = timeSlot;
     }
-
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
-
     public String getSemester() {
         return semester;
     }
