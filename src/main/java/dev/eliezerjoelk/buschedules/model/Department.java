@@ -6,20 +6,22 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "departments") // Maps this class to a MongoDB collection named "departments"
 public class Department {
 
-    @Id // Marks this field as the primary key for MongoDB
+    @Id 
     private String id;
     private String name;
     private String code;
+    private String headOfDepartment;
 
-    // Default constructor (required by Spring Data MongoDB)
+    // Default constructor 
     public Department() {
     }
 
-    // Constructor with all fields (optional, but often useful)
-    public Department(String id, String name, String code) {
+    // Constructor with all fields 
+    public Department(String id, String name, String code, String headOfDepartment) {
         this.id = id;
         this.name = name;
         this.code = code;
+        this.headOfDepartment = headOfDepartment;
     }
 
     // Getters and Setters for all fields
@@ -55,5 +57,13 @@ public class Department {
                ", name='" + name + '\'' +
                ", code='" + code + '\'' +
                '}';
+    }
+
+    public String getHeadOfDepartment() {
+        return headOfDepartment;
+    }
+
+    public void setHeadOfDepartment(String headOfDepartment) {
+        this.headOfDepartment = headOfDepartment;
     }
 }
