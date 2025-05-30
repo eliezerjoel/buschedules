@@ -1,10 +1,13 @@
 
 package dev.eliezerjoelk.buschedules.model;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "courses") // Specifies the MongoDB collection name
+@Document(collection = "courses") 
 public class Course {
 
     @Id
@@ -12,6 +15,10 @@ public class Course {
     private String courseCode;
     private String courseName;
     private int credits;
+    @DBRef
+    private List<Instructor> qualifiedInstructors;
+    @DBRef
+    private String departmentId; 
 
     // Constructors (default, all-args)
     public Course() {
@@ -54,5 +61,21 @@ public class Course {
 
     public void setCredits(int credits) {
         this.credits = credits;
+    }
+
+    public List<Instructor> getQualifiedInstructors() {
+        return qualifiedInstructors;
+    }
+
+    public void setQualifiedInstructors(List<Instructor> qualifiedInstructors) {
+        this.qualifiedInstructors = qualifiedInstructors;
+    }
+
+    public String getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(String departmentId) {
+        this.departmentId = departmentId;
     }
 }
