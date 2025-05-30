@@ -23,11 +23,13 @@ public class Course {
     // Constructors (default, all-args)
     public Course() {
     }
-
-    public Course(String courseCode, String courseName, int credits) {
+    public Course(String id, String courseCode, String courseName, int credits, List<Instructor> qualifiedInstructors, String departmentId) {
+        this.id = id;
         this.courseCode = courseCode;
         this.courseName = courseName;
         this.credits = credits;
+        this.qualifiedInstructors = qualifiedInstructors;
+        this.departmentId = departmentId;
     }
 
     // Getters and setters
