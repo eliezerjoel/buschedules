@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.eliezerjoelk.buschedules.model.ScheduledClass;
-import dev.eliezerjoelk.buschedules.service.GeneticAlgorithmService;
+import dev.eliezerjoelk.buschedules.service.ga.GeneticAlgorithmService;
 
 @RestController
 @RequestMapping("/api/schedule")
@@ -17,9 +17,9 @@ public class ScheduleController {
     @Autowired
     private GeneticAlgorithmService gaService;
 
-    @PostMapping("/generate")
-    public ResponseEntity<List<ScheduledClass>> generateAutomatedSchedule() {
-        List<ScheduledClass> schedule = gaService.generateSchedule();
-        return ResponseEntity.ok(schedule);
-    }
+    // @PostMapping("/generate")
+    // public ResponseEntity<List<ScheduledClass>> generateAutomatedSchedule() {
+    //     List<ScheduledClass> schedule = gaService.generateSchedule();
+    //     return ResponseEntity.ok(schedule);
+    // }
 }

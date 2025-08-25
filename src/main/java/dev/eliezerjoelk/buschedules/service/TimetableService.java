@@ -4,23 +4,31 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import dev.eliezerjoelk.buschedules.exception.ConflictException;
-import dev.eliezerjoelk.buschedules.exception.ResourceNotFoundException;
 import dev.eliezerjoelk.buschedules.model.Course;
 import dev.eliezerjoelk.buschedules.model.Instructor;
-import dev.eliezerjoelk.buschedules.model.ScheduledClass;
+import dev.eliezerjoelk.buschedules.model.StudentGroup;
 import dev.eliezerjoelk.buschedules.model.TimeSlot;
+import dev.eliezerjoelk.buschedules.model.Timetable;
+import dev.eliezerjoelk.buschedules.model.TimetableStatistics;
 import dev.eliezerjoelk.buschedules.repository.CourseRepository;
 import dev.eliezerjoelk.buschedules.repository.InstructorRepository;
-import dev.eliezerjoelk.buschedules.repository.ScheduledClassRepository;
+import dev.eliezerjoelk.buschedules.repository.TimetableRepository;
+import dev.eliezerjoelk.buschedules.service.ga.GeneticAlgorithmService;
+import dev.eliezerjoelk.buschedules.repository.StudentGroupRepository;
 
 @Service
 public class TimetableService {
+    
+    @Autowired
+    private GeneticAlgorithmService geneticAlgorithmService;
     
     @Autowired
     private CourseRepository courseRepository;
@@ -29,79 +37,85 @@ public class TimetableService {
     private InstructorRepository instructorRepository;
     
     @Autowired
-    private ScheduledClassRepository scheduledClassRepository;
+    private StudentGroupRepository studentGroupRepository;
     
-    public List<TimeSlot> getAvailableTimeSlots(String courseId, String instructorId) {
-        // Get existing assignments for this instructor
-        List<ScheduledClass> instructorAssignments = scheduledClassRepository.findByInstructorId(instructorId);
-
-        // Get existing assignments for this course
-        List<ScheduledClass> courseAssignments = scheduledClassRepository.findByCourseId(courseId);
-        
-        // Generate all possible time slots (e.g., Monday-Friday, 8AM-6PM, in 1-hour blocks)
-        List<TimeSlot> allTimeSlots = generateAllTimeSlots();
-        
-        // Remove time slots that conflict with existing assignments
-        List<TimeSlot> availableTimeSlots = removeConflictingTimeSlots(allTimeSlots, 
-                                                                        instructorAssignments, 
-                                                                        courseAssignments);
-        
-        return availableTimeSlots;
-    }
+    @Autowired
+    private TimetableRepository timetableRepository;
     
-    public ScheduledClass createAssignment(String courseId, String instructorId, 
-                                       DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
-        Course course = courseRepository.findById(courseId)
-            .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
-        
-        Instructor instructor = instructorRepository.findById(instructorId)
-            .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
-        
-        // Check if the time slot is still available
-        boolean isAvailable = checkTimeSlotAvailability(courseId, instructorId, dayOfWeek, startTime, endTime);
-        if (!isAvailable) {
-            throw new ConflictException("The selected time slot is no longer available");
+    private static final Logger logger = LoggerFactory.getLogger(TimetableService.class);
+    
+    public Timetable generateTimetable(String semester, String academicYear) {
+        try {
+            logger.info("Starting timetable generation for semester: {}, year: {}", semester, academicYear);
+            
+            // Fetch all required data
+            List<Course> courses = courseRepository.findAll();
+            List<Instructor> instructors = instructorRepository.findAll();
+            List<StudentGroup> studentGroups = studentGroupRepository.findAll();
+            List<TimeSlot> timeSlots = generateTimeSlots();
+            
+            // Validate data
+            validateInputData(courses, instructors, studentGroups, timeSlots);
+            
+            // Generate optimal timetable using genetic algorithm
+            Timetable generatedTimetable = geneticAlgorithmService.generateOptimalTimetable(
+                courses, instructors, studentGroups, timeSlots);
+            
+            // Set semester and academic year for all scheduled classes
+            generatedTimetable.getClasses().forEach(scheduledClass -> {
+                scheduledClass.setSemester(semester);
+                scheduledClass.setAcademicYear(academicYear);
+            });
+            
+            // Save the generated timetable
+            Timetable savedTimetable = timetableRepository.save(generatedTimetable);
+            
+            logger.info("Timetable generation completed successfully with {} classes", 
+                       savedTimetable.getClasses().size());
+            
+            return savedTimetable;
+            
+        } catch (Exception e) {
+            logger.error("Error generating timetable for semester: {}, year: {}", semester, academicYear, e);
+            throw new RuntimeException("Failed to generate timetable: " + e.getMessage(), e);
         }
-        
-        // Create and save the new assignment
-        ScheduledClass scheduledClass = new ScheduledClass();
-        scheduledClass.setCourse(course);
-        scheduledClass.setInstructor(instructor);
-        scheduledClass.setDayOfWeek(dayOfWeek);
-        scheduledClass.setStartTime(startTime);
-        scheduledClass.setEndTime(endTime);
-        
-        return scheduledClassRepository.save(scheduledClass);
     }
     
-    private List<TimeSlot> generateAllTimeSlots() {
+    // public Timetable getTimetable(String semester, String academicYear) {
+    //     return timetableRepository.findBySemesterAndAcademicYear(semester, academicYear)
+    //         .orElseThrow(() -> new RuntimeException("Timetable not found for semester: " + semester + ", year: " + academicYear));
+    // }
+    
+    public List<Timetable> getAllTimetables() {
+        return timetableRepository.findAll();
+    }
+    
+    // public void deleteTimetable(String semester, String academicYear) {
+    //     Timetable timetable = getTimetable(semester, academicYear);
+    //     timetableRepository.delete(timetable);
+    //     logger.info("Deleted timetable for semester: {}, year: {}", semester, academicYear);
+    // }
+    
+    private List<TimeSlot> generateTimeSlots() {
         List<TimeSlot> timeSlots = new ArrayList<>();
         
-        // Define business hours - from 8AM to 6PM
-        LocalTime startHour = LocalTime.of(8, 0);
-        LocalTime endHour = LocalTime.of(18, 0);
+        // Generate time slots for Monday to Friday
+        DayOfWeek[] weekdays = {DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, 
+                               DayOfWeek.THURSDAY, DayOfWeek.FRIDAY};
         
-        // Define duration of each slot (1 hour in this case)
-        int durationHours = 1;
+        // Time slots from 8:00 AM to 6:00 PM (1-hour slots)
+        LocalTime[] startTimes = {
+            LocalTime.of(8, 0), LocalTime.of(9, 0), LocalTime.of(10, 0), LocalTime.of(11, 0),
+            LocalTime.of(12, 0), LocalTime.of(13, 0), LocalTime.of(14, 0), LocalTime.of(15, 0),
+            LocalTime.of(16, 0), LocalTime.of(17, 0)
+        };
         
-        // For each day Monday through Friday
-        for (DayOfWeek day : new DayOfWeek[] {
-                DayOfWeek.MONDAY, 
-                DayOfWeek.TUESDAY, 
-                DayOfWeek.WEDNESDAY, 
-                DayOfWeek.THURSDAY, 
-                DayOfWeek.FRIDAY
-        }) {
-            // For each hour in the business day
-            for (int hour = startHour.getHour(); hour < endHour.getHour(); hour++) {
-                LocalTime slotStart = LocalTime.of(hour, 0);
-                LocalTime slotEnd = slotStart.plusHours(durationHours);
-                
+        for (DayOfWeek day : weekdays) {
+            for (LocalTime startTime : startTimes) {
                 TimeSlot timeSlot = new TimeSlot();
                 timeSlot.setDayOfWeek(day);
-                timeSlot.setStartTime(slotStart);
-                timeSlot.setEndTime(slotEnd);
-                
+                timeSlot.setStartTime(startTime);
+                timeSlot.setEndTime(startTime.plusHours(1)); // 1-hour duration
                 timeSlots.add(timeSlot);
             }
         }
@@ -109,58 +123,45 @@ public class TimetableService {
         return timeSlots;
     }
     
-    private List<TimeSlot> removeConflictingTimeSlots(List<TimeSlot> allTimeSlots, 
-                                                      List<ScheduledClass> instructorAssignments,
-                                                      List<ScheduledClass> courseAssignments) {
-        return allTimeSlots.stream()
-                .filter(timeSlot -> !conflictsWithAnyAssignment(timeSlot, instructorAssignments))
-                .filter(timeSlot -> !conflictsWithAnyAssignment(timeSlot, courseAssignments))
-                .collect(Collectors.toList());
+    private void validateInputData(List<Course> courses, List<Instructor> instructors, 
+                                  List<StudentGroup> studentGroups, List<TimeSlot> timeSlots) {
+        if (courses.isEmpty()) {
+            throw new IllegalArgumentException("No courses found. Cannot generate timetable.");
+        }
+        
+        if (instructors.isEmpty()) {
+            throw new IllegalArgumentException("No instructors found. Cannot generate timetable.");
+        }
+        
+        if (studentGroups.isEmpty()) {
+            throw new IllegalArgumentException("No student groups found. Cannot generate timetable.");
+        }
+        
+        if (timeSlots.isEmpty()) {
+            throw new IllegalArgumentException("No time slots available. Cannot generate timetable.");
+        }
+        
+        logger.info("Input validation passed: {} courses, {} instructors, {} student groups, {} time slots",
+                   courses.size(), instructors.size(), studentGroups.size(), timeSlots.size());
     }
     
-    private boolean conflictsWithAnyAssignment(TimeSlot timeSlot, List<ScheduledClass> assignments) {
-        return assignments.stream().anyMatch(assignment -> 
-            assignment.getDayOfWeek() == timeSlot.getDayOfWeek() && 
-            // Check if the time ranges overlap
-            (
-                // Assignment starts during the timeSlot
-                (assignment.getStartTime().compareTo(timeSlot.getStartTime()) >= 0 && 
-                 assignment.getStartTime().compareTo(timeSlot.getEndTime()) < 0)
-                 
-                 ||
-                 
-                // Assignment ends during the timeSlot
-                (assignment.getEndTime().compareTo(timeSlot.getStartTime()) > 0 && 
-                 assignment.getEndTime().compareTo(timeSlot.getEndTime()) <= 0)
-                 
-                 ||
-                 
-                // Assignment completely contains the timeSlot
-                (assignment.getStartTime().compareTo(timeSlot.getStartTime()) <= 0 && 
-                 assignment.getEndTime().compareTo(timeSlot.getEndTime()) >= 0)
-            )
-        );
-    }
-    
-    private boolean checkTimeSlotAvailability(String courseId, String instructorId, 
-                                             DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
-        // Create a timeSlot object from the parameters
-        TimeSlot requestedSlot = new TimeSlot();
-        requestedSlot.setDayOfWeek(dayOfWeek);
-        requestedSlot.setStartTime(startTime);
-        requestedSlot.setEndTime(endTime);
+    // public TimetableStatistics getTimetableStatistics(String semester, String academicYear) {
+    //     Timetable timetable = getTimetable(semester, academicYear);
         
-        // Get existing assignments for this instructor
-        List<ScheduledClass> instructorAssignments = scheduledClassRepository.findByInstructorId(instructorId);
+    //     Map<String, Long> instructorWorkload = timetable.getClasses().stream()
+    //         .collect(Collectors.groupingBy(
+    //             sc -> sc.getInstructor().getFirstName() + " " + sc.getInstructor().getLastName(),
+    //             Collectors.counting()));
         
-        // Get existing assignments for this course
-        List<ScheduledClass> courseAssignments = scheduledClassRepository.findByCourseId(courseId);
+    //     Map<DayOfWeek, Long> dailyClassCount = timetable.getClasses().stream()
+    //         .collect(Collectors.groupingBy(
+    //             sc -> sc.getTimeSlot().getDayOfWeek(),
+    //             Collectors.counting()));
         
-        // Check if the requested time slot conflicts with any existing assignment
-        boolean instructorHasConflict = conflictsWithAnyAssignment(requestedSlot, instructorAssignments);
-        boolean courseHasConflict = conflictsWithAnyAssignment(requestedSlot, courseAssignments);
-        
-        // The time slot is available if there are no conflicts
-        return !instructorHasConflict && !courseHasConflict;
-    }
+    //     return new TimetableStatistics(
+    //         timetable.getClasses().size(),
+    //         instructorWorkload,
+    //         dailyClassCount
+    //     );
+    // }
 }

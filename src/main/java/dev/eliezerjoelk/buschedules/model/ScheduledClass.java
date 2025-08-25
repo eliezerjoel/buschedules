@@ -103,11 +103,11 @@ public class ScheduledClass {
 
 
     
-    public TimeSlot gettimeSlot() {
+    public TimeSlot getTimeSlot() {
         return timeSlot;
     }
 
-    public void settimeSlot(TimeSlot timeSlot) {
+    public void setTimeSlot(TimeSlot timeSlot) {
         this.timeSlot = timeSlot;
     }
     public String getSemester() {

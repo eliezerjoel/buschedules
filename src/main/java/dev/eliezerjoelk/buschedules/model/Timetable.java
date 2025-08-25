@@ -17,4 +17,8 @@ public class Timetable {
     public List<ScheduledClass> getClasses() {
         return classes;
     }
+
+    public void setClasses(List<ScheduledClass> classes) {
+        this.classes = classes;
+    }
 }

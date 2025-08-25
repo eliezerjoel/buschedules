@@ -47,77 +47,68 @@ public class TimeSlotController {
     }
 
     /**
-     * Get available time slots for a specific day
-     */
-    @GetMapping("/by-day")
-    public ResponseEntity<List<TimeSlot>> getTimeSlotsForDay(
-            @RequestParam DayOfWeek dayOfWeek) {
-        return ResponseEntity.ok(timeSlotService.getTimeSlotsForDay(dayOfWeek));
-    }
-
-    /**
      * Get available time slots within a time range
-     */
-    @GetMapping("/by-time-range")
-    public ResponseEntity<List<TimeSlot>> getTimeSlotsInTimeRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime startTime,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime endTime) {
-        return ResponseEntity.ok(timeSlotService.getTimeSlotsInTimeRange(startTime, endTime));
-    }
+    //  */
+    // @GetMapping("/by-time-range")
+    // public ResponseEntity<List<TimeSlot>> getTimeSlotsInTimeRange(
+    //         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime startTime,
+    //         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime endTime) {
+    //     return ResponseEntity.ok(timeSlotService.getTimeSlotsInTimeRange(startTime, endTime));
+    // }
 
     /**
      * Check if a particular time slot is available
      */
-    @GetMapping("/check-availability")
-    public ResponseEntity<Map<String, Boolean>> checkTimeSlotAvailability(
-            @RequestParam String courseId,
-            @RequestParam String instructorId,
-            @RequestParam DayOfWeek dayOfWeek,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime startTime,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime endTime) {
+    // @GetMapping("/check-availability")
+    // public ResponseEntity<Map<String, Boolean>> checkTimeSlotAvailability(
+    //         @RequestParam String courseId,
+    //         @RequestParam String instructorId,
+    //         @RequestParam DayOfWeek dayOfWeek,
+    //         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime startTime,
+    //         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime endTime) {
         
-        boolean isAvailable = timeSlotService.isTimeSlotAvailable(
-            courseId, instructorId, dayOfWeek, startTime, endTime);
+    //     boolean isAvailable = timeSlotService.isTimeSlotAvailable(
+    //         courseId, instructorId, dayOfWeek, startTime, endTime);
         
-        return ResponseEntity.ok(Map.of("available", isAvailable));
-    }
+    //     return ResponseEntity.ok(Map.of("available", isAvailable));
+    // }
 
     /**
      * Get all time slots for a lecturer
      */
-    @GetMapping("/lecturer/{instructorId}")
-    public ResponseEntity<List<TimeSlot>> getTimeSlotsForLecturer(
-            @PathVariable String instructorId) {
-        return ResponseEntity.ok(timeSlotService.getTimeSlotsForLecturer(instructorId));
-    }
+    // @GetMapping("/lecturer/{instructorId}")
+    // public ResponseEntity<List<TimeSlot>> getTimeSlotsForLecturer(
+    //         @PathVariable String instructorId) {
+    //     return ResponseEntity.ok(timeSlotService.getTimeSlotsForLecturer(instructorId));
+    // }
 
     /**
      * Get all time slots for a course
-     */
-    @GetMapping("/course/{courseId}")
-    public ResponseEntity<List<TimeSlot>> getTimeSlotsForCourse(
-            @PathVariable String courseId) {
-        return ResponseEntity.ok(timeSlotService.getTimeSlotsForCourse(courseId));
-    }
+    //  */
+    // @GetMapping("/course/{courseId}")
+    // public ResponseEntity<List<TimeSlot>> getTimeSlotsForCourse(
+    //         @PathVariable String courseId) {
+    //     return ResponseEntity.ok(timeSlotService.getTimeSlotsForCourse(courseId));
+    // }
 
     /**
      * Configure time slot parameters (admin only)
      */
-    @PostMapping("/configure")
-    public ResponseEntity<Map<String, Object>> configureTimeSlots(
-            @RequestBody TimeSlotConfigRequest config) {
-        timeSlotService.configureTimeSlots(
-            config.getStartOfDay(), 
-            config.getEndOfDay(),
-            config.getSlotDurationMinutes());
+    // @PostMapping("/configure")
+    // public ResponseEntity<Map<String, Object>> configureTimeSlots(
+    //         @RequestBody TimeSlotConfigRequest config) {
+    //     timeSlotService.configureTimeSlots(
+    //         config.getStartOfDay(), 
+    //         config.getEndOfDay(),
+    //         config.getSlotDurationMinutes());
         
-        return ResponseEntity.ok(Map.of(
-            "message", "Time slot configuration updated successfully",
-            "startOfDay", config.getStartOfDay(),
-            "endOfDay", config.getEndOfDay(),
-            "slotDurationMinutes", config.getSlotDurationMinutes()
-        ));
-    }
+    //     return ResponseEntity.ok(Map.of(
+    //         "message", "Time slot configuration updated successfully",
+    //         "startOfDay", config.getStartOfDay(),
+    //         "endOfDay", config.getEndOfDay(),
+    //         "slotDurationMinutes", config.getSlotDurationMinutes()
+    //     ));
+    // }
 
     /**
      * Request object for time slot configuration

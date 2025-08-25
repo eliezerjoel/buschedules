@@ -16,10 +16,10 @@ import dev.eliezerjoelk.buschedules.model.StudentGroup;
 public interface ScheduledClassRepository extends MongoRepository<ScheduledClass, String> {
 
     // Method to find scheduled classes by Instructor and Day of Week
-    List<ScheduledClass> findByInstructorAndDayOfWeek(Instructor instructor, DayOfWeek dayOfWeek);
+    // List<ScheduledClass> findByInstructorAndDayOfWeek(Instructor instructor, DayOfWeek dayOfWeek);
 
     // Method to find scheduled classes by StudentGroup and Day of Week
-    List<ScheduledClass> findByStudentGroupAndDayOfWeek(StudentGroup studentGroup, DayOfWeek dayOfWeek);
+    // List<ScheduledClass> findByStudentGroupAndDayOfWeek(StudentGroup studentGroup, DayOfWeek dayOfWeek);
 
     // Method to find all scheduled classes for a given instructor (regardless of day)
     List<ScheduledClass> findByInstructor(Instructor instructor);
