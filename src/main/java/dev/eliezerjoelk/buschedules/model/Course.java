@@ -12,7 +12,15 @@ public class Course {
     private String courseCode;
     private String courseName;
     private int credits;
+    private String departmentId;
 
+    public String getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(String departmentId) {
+        this.departmentId = departmentId;
+    }
     // Constructors (default, all-args)
     public Course() {
     }
