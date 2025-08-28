@@ -21,7 +21,7 @@ public class TimetableResponse {
         this.success = success;
         this.generatedAt = LocalDateTime.now();
         this.totalClasses = departments != null
-            ? departments.stream().mapToInt(d -> d.getCourses().size()).sum()
+            ? departments.stream().mapToInt(d -> d.getClasses().size()).sum()
             : 0;
     }
 

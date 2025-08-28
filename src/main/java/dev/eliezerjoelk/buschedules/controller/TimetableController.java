@@ -1,30 +1,21 @@
 package dev.eliezerjoelk.buschedules.controller;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-
-import dev.eliezerjoelk.buschedules.model.Course;
-import dev.eliezerjoelk.buschedules.model.ScheduledClass;
-import dev.eliezerjoelk.buschedules.model.Timetable;
-import dev.eliezerjoelk.buschedules.service.TimetableService;
-import dev.eliezerjoelk.buschedules.dto.DepartmentTimetable;
-import dev.eliezerjoelk.buschedules.dto.TimetableRequest;
-import dev.eliezerjoelk.buschedules.dto.TimetableResponse;
-// import dev.eliezerjoelk.buschedules.dto.TimetableStatistics;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import dev.eliezerjoelk.buschedules.model.ScheduledClass;
+import dev.eliezerjoelk.buschedules.model.Timetable;
+import dev.eliezerjoelk.buschedules.repository.DepartmentRepository;
+import dev.eliezerjoelk.buschedules.service.TimetableService;
+import dev.eliezerjoelk.buschedules.dto.DepartmentTimetable;
+import dev.eliezerjoelk.buschedules.dto.ScheduledClassDto;
+import dev.eliezerjoelk.buschedules.dto.TimetableResponse;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/timetable")
@@ -33,79 +24,94 @@ public class TimetableController {
 
     @Autowired
     private TimetableService timetableService;
-@PostMapping("/generate")
-public ResponseEntity<TimetableResponse> generateTimetable() {
-    try {
-        Timetable generatedTimetable = timetableService.generateTimetable();
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
-        // Group ScheduledClass by departmentId and extract unique courses
-        Map<String, List<Course>> coursesByDepartment = generatedTimetable.getClasses().stream()
-            .collect(Collectors.groupingBy(
-                sc -> sc.getCourse().getDepartmentId(),
-                Collectors.mapping(
-                    sc -> sc.getCourse(),
-                    Collectors.collectingAndThen(
-                        Collectors.toSet(),
-                        ArrayList::new
-                    )
-                )
-            ));
+    @PostMapping("/generate")
+    public ResponseEntity<TimetableResponse> generateTimetable() {
+        try {
+            Timetable generatedTimetable = timetableService.generateTimetable();
 
-        List<DepartmentTimetable> departments = coursesByDepartment.entrySet().stream()
-            .map(entry -> new DepartmentTimetable(entry.getKey(), entry.getValue()))
-            .collect(Collectors.toList());
+            Map<String, List<ScheduledClass>> classesByDepartment = generatedTimetable.getClasses().stream()
+                    .collect(Collectors.groupingBy(sc -> sc.getCourse().getDepartmentId()));
 
-        TimetableResponse response = new TimetableResponse(
-            departments,
-            "Timetable generated successfully",
-            true
-        );
-        return ResponseEntity.ok(response);
-    } catch (Exception e) {
-        TimetableResponse errorResponse = new TimetableResponse(
-            null,
-            "Failed to generate timetable: " + e.getMessage(),
-            false
-        );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-    }
-}
-    // @GetMapping
-    // public ResponseEntity<TimetableResponse> getCurrentTimetable() {
-    //     Timetable timetable = timetableService.getCurrentTimetable();
-    //     if (timetable == null) {
-    //         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-    //             .body(new TimetableResponse(null, "No timetable found", false));
-    //     }
-    //     return ResponseEntity.ok(new TimetableResponse(timetable, "Timetable retrieved successfully", true));
-    // }
-@GetMapping
-public ResponseEntity<TimetableResponse> getCurrentTimetable() {
-    Timetable timetable = timetableService.getCurrentTimetable();
-    if (timetable == null) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(new TimetableResponse(null, "No timetable found", false));
+            List<DepartmentTimetable> departments = classesByDepartment.entrySet().stream()
+                    .map(entry -> {
+                        String deptId = entry.getKey();
+                        List<ScheduledClass> classes = entry.getValue();
+                        String deptName = departmentRepository.findById(deptId)
+                                .map(department -> department.getName())
+                                .orElse(deptId);
+
+                        List<ScheduledClassDto> classesDto = classes.stream()
+                                .map(sc -> new ScheduledClassDto(
+                                        sc.getId(),
+                                        sc.getCourse().getCourseCode(),
+                                        sc.getCourse().getCourseName(),
+                                        sc.getInstructor().getFirstName() + " " + sc.getInstructor().getLastName(),
+                                        sc.getCourse().getDepartmentId(),
+                                        sc.getTimeSlot().getDayOfWeek(),
+                                        sc.getTimeSlot().getStartTime(),
+                                        sc.getTimeSlot().getEndTime()))
+                                .collect(Collectors.toList());
+
+                        return new DepartmentTimetable(deptId, deptName, classesDto);
+                    })
+                    .collect(Collectors.toList());
+
+            TimetableResponse response = new TimetableResponse(
+                    departments,
+                    "Timetable generated successfully",
+                    true);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            TimetableResponse errorResponse = new TimetableResponse(
+                    null,
+                    "Failed to generate timetable: " + e.getMessage(),
+                    false);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
-    // Group ScheduledClass by departmentId and extract unique courses
-    Map<String, List<Course>> coursesByDepartment = timetable.getClasses().stream()
-        .collect(Collectors.groupingBy(
-            sc -> sc.getCourse().getDepartmentId(),
-            Collectors.mapping(
-                sc -> sc.getCourse(),
-                Collectors.collectingAndThen(
-                    Collectors.toSet(),
-                    ArrayList::new
-                )
-            )
-        ));
+    @GetMapping
+    public ResponseEntity<TimetableResponse> getCurrentTimetable() {
+        Timetable timetable = timetableService.getCurrentTimetable();
+        if (timetable == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new TimetableResponse(null, "No timetable found", false));
+        }
 
-    List<DepartmentTimetable> departments = coursesByDepartment.entrySet().stream()
-        .map(entry -> new DepartmentTimetable(entry.getKey(), entry.getValue()))
-        .collect(Collectors.toList());
+        Map<String, List<ScheduledClass>> classesByDepartment = timetable.getClasses().stream()
+                .collect(Collectors.groupingBy(sc -> sc.getCourse().getDepartmentId()));
 
-    return ResponseEntity.ok(new TimetableResponse(departments, "Timetable retrieved successfully", true));
-}
+        List<DepartmentTimetable> departments = classesByDepartment.entrySet().stream()
+                .map(entry -> {
+                    String deptId = entry.getKey();
+                    List<ScheduledClass> classes = entry.getValue();
+
+                    String deptName = departmentRepository.findById(deptId)
+                            .map(department -> department.getName())
+                            .orElse(deptId);
+
+                    List<ScheduledClassDto> classesDto = classes.stream()
+                            .map(sc -> new ScheduledClassDto(
+                                    sc.getId(),
+                                    sc.getCourse().getCourseCode(),
+                                    sc.getCourse().getCourseName(),
+                                    sc.getInstructor().getFirstName() + " " + sc.getInstructor().getLastName(),
+                                    sc.getCourse().getDepartmentId(),
+                                    sc.getTimeSlot().getDayOfWeek(),
+                                    sc.getTimeSlot().getStartTime(),
+                                    sc.getTimeSlot().getEndTime()))
+                            .collect(Collectors.toList());
+
+                    return new DepartmentTimetable(deptId, deptName, classesDto);
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(new TimetableResponse(departments, "Timetable retrieved successfully", true));
+    }
+
     @DeleteMapping
     public ResponseEntity<String> deleteCurrentTimetable() {
         timetableService.deleteCurrentTimetable();
