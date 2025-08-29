@@ -1,19 +1,11 @@
 
 package dev.eliezerjoelk.buschedules.service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import dev.eliezerjoelk.buschedules.repository.CourseRepository;
-import java.time.Duration;
-import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,7 +18,7 @@ import dev.eliezerjoelk.buschedules.model.Instructor;
 import dev.eliezerjoelk.buschedules.model.ScheduledClass;
 import dev.eliezerjoelk.buschedules.model.TimeSlot;
 import dev.eliezerjoelk.buschedules.model.Timetable;
-import dev.eliezerjoelk.buschedules.repository.ScheduledClassRepository;
+import dev.eliezerjoelk.buschedules.repository.CourseRepository;
 import dev.eliezerjoelk.buschedules.repository.InstructorRepository;
 
 
@@ -134,7 +126,7 @@ public class GeneticAlgorithmService {
             .collect(Collectors.toList());
         
         if (possibleLecturers.isEmpty()) {
-            throw new IllegalStateException("No lecturer available for course: " + course.getCode());
+            throw new IllegalStateException("No lecturer available for course: " + course.getCourseCode());
         }
         
         return possibleLecturers.get(new Random().nextInt(possibleLecturers.size()));
@@ -198,8 +190,107 @@ public class GeneticAlgorithmService {
         for (ScheduledClass sc : timetable.getClasses()) {
             if (rand.nextDouble() < MUTATION_RATE) {
                 // Mutate time slot
-                sc.setTimeSlot(timeSlots.get(rand.nextInt(timeSlots.size())));
+                sc.settimeSlot(timeSlots.get(rand.nextInt(timeSlots.size())));
             }
         }
     }
 }
+
+
+/*
+ * @Service
+public class GeneticSchedulingService {
+    @Autowired
+    private CourseRepository courseRepository;
+    @Autowired
+    private LecturerRepository lecturerRepository;
+    @Autowired
+    private TimeSlotService timeSlotService;
+
+    private static final int POPULATION_SIZE = 100;
+    private static final double MUTATION_RATE = 0.1;
+    private static final int MAX_GENERATIONS = 500;
+
+    public List<ScheduledClass> generateOptimalSchedule() {
+        List<Course> courses = courseRepository.findAll();
+        List<Lecturer> lecturers = lecturerRepository.findAll();
+        List<TimeSlot> timeSlots = timeSlotService.getAllTimeSlots();
+
+        List<Timetable> population = initializePopulation(courses, lecturers, timeSlots);
+        
+        for (int gen = 0; gen < MAX_GENERATIONS; gen++) {
+            population = evolvePopulation(population);
+            Timetable best = getBestTimetable(population);
+            
+            if (calculateFitness(best) == 0) {
+                break; // Found perfect schedule
+            }
+        }
+        
+        return convertToScheduledClasses(getBestTimetable(population));
+    }
+
+    private List<Timetable> initializePopulation(List<Course> courses, 
+                                               List<Lecturer> lecturers,
+                                               List<TimeSlot> timeSlots) {
+        List<Timetable> population = new ArrayList<>();
+        for (int i = 0; i < POPULATION_SIZE; i++) {
+            population.add(createRandomTimetable(courses, lecturers, timeSlots));
+        }
+        return population;
+    }
+
+    private Timetable createRandomTimetable(List<Course> courses, 
+                                          List<Lecturer> lecturers,
+                                          List<TimeSlot> timeSlots) {
+        Timetable timetable = new Timetable();
+        Random random = new Random();
+        
+        for (Course course : courses) {
+            Lecturer lecturer = getRandomLecturerForCourse(lecturers, course);
+            TimeSlot timeSlot = timeSlots.get(random.nextInt(timeSlots.size()));
+            timetable.addClass(new ScheduledClass(course, lecturer, timeSlot));
+        }
+        return timetable;
+    }
+
+    private List<Timetable> evolvePopulation(List<Timetable> population) {
+        List<Timetable> newPopulation = new ArrayList<>();
+        
+        // Keep the best individual (elitism)
+        newPopulation.add(getBestTimetable(population));
+        
+        // Fill the rest with offspring
+        while (newPopulation.size() < POPULATION_SIZE) {
+            Timetable parent1 = selectParent(population);
+            Timetable parent2 = selectParent(population);
+            Timetable child = crossover(parent1, parent2);
+            mutate(child);
+            newPopulation.add(child);
+        }
+        
+        return newPopulation;
+    }
+
+    private int calculateFitness(Timetable timetable) {
+        int conflicts = 0;
+        Map<Lecturer, Set<TimeSlot>> lecturerAssignments = new HashMap<>();
+        
+        for (ScheduledClass sc : timetable.getClasses()) {
+            Lecturer lecturer = sc.getLecturer();
+            TimeSlot slot = sc.getTimeSlot();
+            
+            // Check lecturer double-booking
+            if (lecturerAssignments.computeIfAbsent(lecturer, k -> new HashSet<>()).contains(slot)) {
+                conflicts++;
+            } else {
+                lecturerAssignments.get(lecturer).add(slot);
+            }
+        }
+        return conflicts;
+    }
+
+    // Other helper methods (selectParent, crossover, mutate) as before
+    // ...
+}
+ */
