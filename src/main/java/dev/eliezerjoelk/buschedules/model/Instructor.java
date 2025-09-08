@@ -1,5 +1,7 @@
 package dev.eliezerjoelk.buschedules.model;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -11,17 +13,21 @@ public class Instructor {
     private String firstName;
     private String lastName;
     private String email;
-    private String department;
+    private String departmentId;
+    private String qualifications; 
+    private String office;
+    private String employmentStatus;
+    private List<String> courseIds;
 
-    // Constructors (default, all-args)
     public Instructor() {
     }
 
-    public Instructor(String firstName, String lastName, String email, String department) {
+    public Instructor(String firstName, String lastName, String email, String departmentId, String qualifications, String office, String employmentStatus, List<String> courseIds) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.department = department;
+        this.departmentId = departmentId;
+        this.qualifications = qualifications;
     }
 
     // Getters and setters
@@ -33,6 +39,14 @@ public class Instructor {
         this.id = id;
     }
 
+    public String getQualifications() {
+        return qualifications;
+    }
+
+    public void setQualifications(String qualifications) {
+        this.qualifications = qualifications;
+    }
+    
     public String getFirstName() {
         return firstName;
     }
@@ -57,11 +71,30 @@ public class Instructor {
         this.email = email;
     }
 
-    public String getDepartment() {
-        return department;
+    public String getDepartmentId() {
+        return departmentId;
     }
 
-    public void setDepartment(String department) {
-        this.department = department;
+    public void setDepartmentId(String departmentId) {
+        this.departmentId = departmentId;
     }
+    public String getOffice() {
+        return office;
+    }
+    public void setOffice(String office) {
+        this.office = office;
+    }
+    public String getEmploymentStatus() {
+        return employmentStatus;
+    }
+    public void setEmploymentStatus(String employmentStatus) {
+        this.employmentStatus = employmentStatus;
+    }
+    public List<String> getCourseIds() {
+        return courseIds;
+    }
+    public void setCourseIds(List<String> courseIds) {
+        this.courseIds = courseIds;
+    }
+
 }

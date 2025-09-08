@@ -1,29 +1,3 @@
-// @Service
-// public class FitnessEvaluator {
-    
-//     public double evaluateFitness(TimetableChromosome chromosome) {
-//         double penalty = 0.0;
-        
-//         // Hard constraints (high penalty)
-//         penalty += evaluateInstructorConflicts(chromosome) * 100;
-//         penalty += evaluateStudentGroupConflicts(chromosome) * 100;
-        
-//         // Soft constraints (lower penalty)
-//         penalty += evaluateInstructorWorkloadDistribution(chromosome) * 10;
-//         penalty += evaluateTimePreferences(chromosome) * 5;
-        
-//         return 1000.0 - penalty; // Higher fitness = better solution
-//     }
-    
-//     private double evaluateInstructorConflicts(TimetableChromosome chromosome) {
-//         // Check if instructor is assigned to multiple classes at same time
-//     }
-    
-//     private double evaluateStudentGroupConflicts(TimetableChromosome chromosome) {
-//         // Check if student group has overlapping classes
-//     }
-// }
-
 package dev.eliezerjoelk.buschedules.service.ga;
 
 import java.time.LocalTime;
@@ -36,18 +10,22 @@ import org.springframework.stereotype.Service;
 
 import dev.eliezerjoelk.buschedules.model.ScheduledClass;
 import dev.eliezerjoelk.buschedules.model.TimeSlot;
-import dev.eliezerjoelk.buschedules.service.ga.constraints.ConstraintValidator;
+import dev.eliezerjoelk.buschedules.repository.CourseRepository;
+import dev.eliezerjoelk.buschedules.repository.InstructorRepository;
 
 @Service
 public class FitnessEvaluator {
-    
+
     @Autowired
-    private ConstraintValidator constraintValidator;
-    
+    private CourseRepository courseRepository;
+    @Autowired
+    private InstructorRepository instructorRepository;
+
     public double evaluateFitness(TimetableChromosome chromosome) {
         double penalty = 0.0;
         
         // Hard constraints (high penalty)
+        penalty += evaluateQualificationConflicts(chromosome) * 100;
         penalty += evaluateInstructorConflicts(chromosome) * 100;
         penalty += evaluateStudentGroupConflicts(chromosome) * 100;
         
@@ -55,44 +33,54 @@ public class FitnessEvaluator {
         penalty += evaluateInstructorWorkloadDistribution(chromosome) * 10;
         penalty += evaluateTimePreferences(chromosome) * 5;
         
-        return 1000.0 - penalty;
+        return Math.max(0, 1000.0 - penalty); // Higher fitness = better solution
     }
-    
-    private double evaluateInstructorConflicts(TimetableChromosome chromosome) {
-        Map<String, List<ScheduledClass>> instructorClasses = 
-            chromosome.getScheduledClasses().stream()
-                .collect(Collectors.groupingBy(sc -> sc.getInstructor().getId()));
-        
+
+    private double evaluateQualificationConflicts(TimetableChromosome chromosome) {
         int conflicts = 0;
-        for (List<ScheduledClass> classes : instructorClasses.values()) {
-            conflicts += countTimeConflicts(classes);
+        for (ScheduledClass scheduledClass : chromosome.getScheduledClasses()) {
+            String courseId = scheduledClass.getCourse().getId();
+            String instructorId = scheduledClass.getInstructor().getId();
+
+            if (scheduledClass.getCourse().getInstructorIds() == null || 
+                !scheduledClass.getCourse().getInstructorIds().contains(instructorId)) {
+                conflicts++;
+            }
         }
-        
         return conflicts;
     }
-    
-    private double evaluateStudentGroupConflicts(TimetableChromosome chromosome) {
-        Map<String, List<ScheduledClass>> groupClasses = 
-            chromosome.getScheduledClasses().stream()
-                .collect(Collectors.groupingBy(sc -> sc.getStudentGroup().getId()));
-        
+
+    private double evaluateInstructorConflicts(TimetableChromosome chromosome) {
+        // Check if instructor is assigned to multiple classes at same time
         int conflicts = 0;
-        for (List<ScheduledClass> classes : groupClasses.values()) {
+        Map<String, List<ScheduledClass>> classesByInstructor = chromosome.getScheduledClasses().stream()
+                .collect(Collectors.groupingBy(sc -> sc.getInstructor().getId()));
+
+        for (List<ScheduledClass> classes : classesByInstructor.values()) {
             conflicts += countTimeConflicts(classes);
         }
-        
+        return conflicts;
+    }
+
+    private double evaluateStudentGroupConflicts(TimetableChromosome chromosome) {
+        // Check if student group has overlapping classes
+        int conflicts = 0;
+        Map<String, List<ScheduledClass>> classesByStudentGroup = chromosome.getScheduledClasses().stream()
+                .collect(Collectors.groupingBy(sc -> sc.getStudentGroup().getId()));
+
+        for (List<ScheduledClass> classes : classesByStudentGroup.values()) {
+            conflicts += countTimeConflicts(classes);
+        }
         return conflicts;
     }
     
     private double evaluateInstructorWorkloadDistribution(TimetableChromosome chromosome) {
-        Map<String, Long> instructorWorkload = 
-            chromosome.getScheduledClasses().stream()
-                .collect(Collectors.groupingBy(
-                    sc -> sc.getInstructor().getId(), 
-                    Collectors.counting()));
-        
-        double avgWorkload = instructorWorkload.values().stream()
-            .mapToLong(Long::longValue).average().orElse(0.0);
+        Map<String, Long> instructorWorkload = chromosome.getScheduledClasses().stream()
+            .collect(Collectors.groupingBy(sc -> sc.getInstructor().getId(), 
+                                           Collectors.counting()));
+                                           
+        double totalWorkload = instructorWorkload.values().stream().mapToDouble(Long::doubleValue).sum();
+        double avgWorkload = totalWorkload / instructorWorkload.size();
         
         return instructorWorkload.values().stream()
             .mapToDouble(workload -> Math.abs(workload - avgWorkload))

@@ -1,27 +1,16 @@
 package dev.eliezerjoelk.buschedules.service.ga.operators;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
+import dev.eliezerjoelk.buschedules.model.Instructor;
 import dev.eliezerjoelk.buschedules.model.ScheduledClass;
 import dev.eliezerjoelk.buschedules.service.ga.TimetableChromosome;
-
-// @Component
-// public class CrossoverOperator {
-    
-//     public TimetableChromosome crossover(TimetableChromosome parent1, TimetableChromosome parent2) {
-//         // Single-point crossover: take first half from parent1, second half from parent2
-//         // Then repair any constraint violations
-//         return offspring;
-//     }
-// }
-
-
 
 @Component
 public class CrossoverOperator {
@@ -46,6 +35,9 @@ public class CrossoverOperator {
         }
         
         offspring.setScheduledClasses(offspringClasses);
+        
+        repairQualificationViolations(offspring);
+        
         return offspring;
     }
     
@@ -59,5 +51,22 @@ public class CrossoverOperator {
         copy.setSemester(original.getSemester());
         copy.setAcademicYear(original.getAcademicYear());
         return copy;
+    }
+    
+    private void repairQualificationViolations(TimetableChromosome chromosome) {
+        Random random = new Random();
+        
+        for (ScheduledClass scheduledClass : chromosome.getScheduledClasses()) {
+            // Check if current instructor is qualified
+            if (scheduledClass.getCourse().getInstructorIds() != null && 
+                !scheduledClass.getCourse().getInstructorIds().isEmpty() &&
+                !scheduledClass.getCourse().getInstructorIds().contains(scheduledClass.getInstructor().getId())) {
+                
+                // Find a qualified instructor from the course's instructor list
+                // This requires access to all instructors, which we don't have here
+                // So we'll leave this for the mutation operator to fix
+                // The fitness evaluator will penalize this violation
+            }
+        }
     }
 }

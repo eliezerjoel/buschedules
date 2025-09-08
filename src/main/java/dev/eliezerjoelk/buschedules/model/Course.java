@@ -1,6 +1,8 @@
 
 package dev.eliezerjoelk.buschedules.model;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,6 +15,7 @@ public class Course {
     private String courseName;
     private int credits;
     private String departmentId;
+    private List<String> instructorIds; 
 
     public String getDepartmentId() {
         return departmentId;
@@ -25,10 +28,12 @@ public class Course {
     public Course() {
     }
 
-    public Course(String courseCode, String courseName, int credits) {
+    public Course(String courseCode, String courseName, int credits, String departmentId, List<String> instructorIds) {
         this.courseCode = courseCode;
         this.courseName = courseName;
         this.credits = credits;
+        this.departmentId = departmentId;
+        this.instructorIds = instructorIds;
     }
 
     // Getters and setters
@@ -62,5 +67,17 @@ public class Course {
 
     public void setCredits(int credits) {
         this.credits = credits;
+    }
+    public List<String> getInstructorIds() {
+        return instructorIds;
+    }
+    public void setInstructorIds(List<String> instructorIds) {
+        this.instructorIds = instructorIds;
+    }
+    public String getDepartment() {
+        return departmentId;
+    }
+    public void setDepartment(String departmentId) {
+        this.departmentId = departmentId;
     }
 }

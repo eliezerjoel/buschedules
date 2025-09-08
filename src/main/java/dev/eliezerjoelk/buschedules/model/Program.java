@@ -12,6 +12,7 @@ public class Program {
     private String name; // e.g., "Bachelor of Business Computing"
     private String shortCode; // e.g., "BCC", "BSE"
     private Integer creditsRequired; // Total credits needed for the program
+    
 
     @DBRef // Creates a database reference to the Department document
     private Department department; // The department offering this program

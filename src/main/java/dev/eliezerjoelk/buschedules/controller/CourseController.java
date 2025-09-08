@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.eliezerjoelk.buschedules.model.Course;
@@ -64,15 +65,15 @@ public class CourseController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    // Get available instructors for a course
-    @GetMapping("/instructors/available")
-    public ResponseEntity<List<Instructor>> getAvailableInstructorsForCourse() {
-        return ResponseEntity.ok(instructorService.getAvailableInstructorsForCourse());
-    }
-    
+    // // Get available instructors for a course
     // @GetMapping("/instructors/available")
-    // public ResponseEntity<List<Instructor>> getAvailableInstructorsForCourse(@RequestParam String courseId) {
-    //     return ResponseEntity.ok(instructorService.getAvailableInstructorsForCourse(courseId));
+    // public ResponseEntity<List<Instructor>> getAvailableInstructorsForCourse() {
+    //     return ResponseEntity.ok(instructorService.getAvailableInstructorsForCourse());
     // }
+    
+    @GetMapping("/instructors/available")
+    public ResponseEntity<List<Instructor>> getAvailableInstructorsForCourse(@RequestParam String courseId) {
+        return ResponseEntity.ok(instructorService.getAvailableInstructorsForCourse(courseId));
+    }
 
 }

@@ -1,10 +1,10 @@
 package dev.eliezerjoelk.buschedules.service.ga;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -13,19 +13,6 @@ import dev.eliezerjoelk.buschedules.model.Instructor;
 import dev.eliezerjoelk.buschedules.model.ScheduledClass;
 import dev.eliezerjoelk.buschedules.model.StudentGroup;
 import dev.eliezerjoelk.buschedules.model.TimeSlot;
-
-// @Component
-// public class TimetableChromosome {
-//     private List<ScheduledClass> scheduledClasses;
-//     private double fitness;
-    
-//     // Constructor creates random valid assignments
-//     public TimetableChromosome(List<Course> courses, List<Instructor> instructors, 
-//                               List<StudentGroup> studentGroups, List<TimeSlot> timeSlots) {
-//         this.scheduledClasses = generateRandomSchedule(courses, instructors, studentGroups, timeSlots);
-//         this.fitness = 0.0;
-//     }
-// }
 
 @Component
 public class TimetableChromosome {
@@ -55,9 +42,15 @@ public class TimetableChromosome {
                 scheduledClass.setCourse(course);
                 scheduledClass.setStudentGroup(group);
                 
-                // Randomly assign instructor
-                Instructor randomInstructor = instructors.get(random.nextInt(instructors.size()));
-                scheduledClass.setInstructor(randomInstructor);
+                List<Instructor> qualifiedInstructors = getQualifiedInstructors(course, instructors);
+                if (!qualifiedInstructors.isEmpty()) {
+                    Instructor randomInstructor = qualifiedInstructors.get(random.nextInt(qualifiedInstructors.size()));
+                    scheduledClass.setInstructor(randomInstructor);
+                } else {
+                    // Fallback: assign any instructor if no qualified ones found
+                    Instructor randomInstructor = instructors.get(random.nextInt(instructors.size()));
+                    scheduledClass.setInstructor(randomInstructor);
+                }
                 
                 // Randomly assign time slot
                 TimeSlot randomTimeSlot = timeSlots.get(random.nextInt(timeSlots.size()));
@@ -68,6 +61,16 @@ public class TimetableChromosome {
         }
         
         return schedule;
+    }
+    
+    private List<Instructor> getQualifiedInstructors(Course course, List<Instructor> allInstructors) {
+        if (course.getInstructorIds() == null || course.getInstructorIds().isEmpty()) {
+            return allInstructors; // If no qualifications specified, all instructors are eligible
+        }
+        
+        return allInstructors.stream()
+            .filter(instructor -> course.getInstructorIds().contains(instructor.getId()))
+            .collect(Collectors.toList());
     }
     
     // Getters and setters
